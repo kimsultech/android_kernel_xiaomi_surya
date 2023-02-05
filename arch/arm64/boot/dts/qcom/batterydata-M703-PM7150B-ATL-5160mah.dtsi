@@ -15,27 +15,28 @@
  qcom,m703-pm7150b-atl-5160mah {
 	qcom,max-voltage-uv = <4450000>;
 	qcom,ffc-max-voltage-uv = <4480000>;
-	//qcom,fg-cc-cv-threshold-uv = <4440000>;
-	qcom,fastchg-current-ma = <6000>;
+	//qcom,fg-cc-cv-threshold-uv = <4450000>;
+	qcom,fastchg-current-ma = <5200>;
 	qcom,batt-id-kohm = <100>;
 	qcom,battery-beta = <4250>;
 	qcom,battery-therm-kohm = <100>;
 	qcom,battery-type = "m703-pm7150b-atl-5160mah";
-	qcom,qg-batt-profile-ver = <100>;
+	//qcom,qg-batt-profile-ver = <100>;
+	qcom,oem-batt-profile-ver = <5>;
 	mi,six-pin-battery;
 
 	qcom,jeita-fcc-ranges = <(-100)  0   450000
                                 1  50   950000
 				51  100  2500000
 				101 150  4000000
-				151 480  6000000
+				151 480  5200000
 				481 580  2500000>;
 
-	qcom,jeita-fv-ranges = <(-100)   0   4450000
-                                1   50   4450000
-				51  100  4450000
-				101 150  4450000
-				151 480  4480000
+	qcom,jeita-fv-ranges = <(-100)   0   4400000
+                                1   50   4400000
+				51  100  4400000
+				101 150  4400000
+				151 480  4450000
 				481 580  4100000>;
 
 	/* COOL = 15 degc, WARM = 48 degC */
