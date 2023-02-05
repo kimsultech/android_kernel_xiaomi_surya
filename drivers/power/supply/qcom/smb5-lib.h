@@ -108,22 +108,24 @@ enum print_reason {
 
 #define JEITA_VOTER                     "JEITA_VOTER"
 
+#define BYPASS_VOTER			"BYPASS_VOTER"
+
 #define BOOST_BACK_STORM_COUNT	3
 #define WEAK_CHG_STORM_COUNT	8
 
 /* defined for distinguish qc class_a and class_b */
 #define VOL_THR_FOR_QC_CLASS_AB		12300000
 #define COMP_FOR_LOW_RESISTANCE_CABLE	100000
-#define QC_CLASS_A_CURRENT_UA		3600000
+#define QC_CLASS_A_CURRENT_UA		4200000
 #define HVDCP_CLASS_A_MAX_UA		2500000
-#define HVDCP_CLASS_A_FOR_CP_UA		2000000
+#define HVDCP_CLASS_A_FOR_CP_UA		2100000
 
 #define MAX_PULSE			38
 #define MAX_PLUSE_COUNT_ALLOWED		23
 #define HIGH_NUM_PULSE_THR		12
 
 /* defined for charger type recheck */
-#define CHARGER_RECHECK_DELAY_MS	30000
+#define CHARGER_RECHECK_DELAY_MS	15000
 #define TYPE_RECHECK_TIME_5S	5000
 #define TYPE_RECHECK_COUNT	3
 

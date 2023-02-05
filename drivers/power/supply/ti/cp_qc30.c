@@ -371,7 +371,7 @@ static void cp_update_fc_status(void)
 		pm_state.bq2597x.ibat_curr = pm_state.ibat_now;
 	}
 
-	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGE_ENABLED, &val);
+	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
 	if (!ret)
 		pm_state.bq2597x.charge_enabled = val.intval;
 
@@ -776,8 +776,12 @@ static int cp_flash2_charge(unsigned int port)
 				thermal_level, pm_state.is_temp_out_fc2_range);
 		return CP_ENABLE_FAIL;
 	}
-	if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 100 &&
+	if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50 &&
 			pm_state.bq2597x.ibat_curr < sys_config.fc2_taper_current) {
+
+   		pr_info("TAPER_DONE=%d vbat=%d, bat_volt_lp_lmt=%d, ibat_curr=%d, fc2_taper_current=%d \n", fc2_taper_timer, 
+            pm_state.bq2597x.vbat_volt, sys_config.bat_volt_lp_lmt, pm_state.bq2597x.ibat_curr, sys_config.fc2_taper_current);
+
 		if (fc2_taper_timer++ > TAPER_TIMEOUT) {
 			fc2_taper_timer = 0;
 			return TAPER_DONE;
@@ -893,8 +897,9 @@ void cp_statemachine(unsigned int port)
 				pr_debug("thermal too high or batt temp out of range or slowly charging, waiting...\n");
 			} else if (pm_state.bq2597x.vbat_volt < sys_config.min_vbat_start_flash2)
 				cp_move_state(CP_STATE_SW_ENTRY);
-			else if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 100
-					|| pm_state.capacity >= HIGH_CAPACITY_TRH) {
+			else if ( /*(pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50
+                    && pm_state.bq2597x.ibat_curr < sys_config.fc2_taper_current)
+					|| */ pm_state.capacity >= HIGH_CAPACITY_TRH) {
 				pm_state.sw_near_cv = true;
 				cp_move_state(CP_STATE_SW_ENTRY);
 			} else {
@@ -950,11 +955,14 @@ void cp_statemachine(unsigned int port)
 			pr_debug("thermal or batt temp recovery...\n");
 			recovery = false;
 		} else {
-			pr_debug("thermal(%d) too high or batt temp out of range\n", thermal_level);
+            if( thermal_level >= MAX_THERMAL_LEVEL || pm_state.is_temp_out_fc2_range ) {
+    			pr_info("thermal(%d) too high or batt temp out of range (%d, %d)\n", thermal_level, pm_state.is_temp_out_fc2_range, recovery);
+                break;
+            }
 		}
 		cp_get_batt_capacity();
-		if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 100
-					|| pm_state.capacity >= HIGH_CAPACITY_TRH) {
+		if ( pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50
+              && pm_state.capacity >= HIGH_CAPACITY_TRH) {
 				pm_state.sw_near_cv = true;
 		}
 		if (!pm_state.sw_near_cv && !recovery) {
