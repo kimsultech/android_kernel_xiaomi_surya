@@ -548,6 +548,7 @@ int schedtune_task_boost(struct task_struct *p)
 {
 	struct schedtune *st;
 	int task_boost;
+    int adj = p->signal->oom_score_adj;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
@@ -557,6 +558,11 @@ int schedtune_task_boost(struct task_struct *p)
 	st = task_schedtune(p);
 	task_boost = st->boost;
 	rcu_read_unlock();
+
+    if( task_boost > 0 ) {
+        if( adj != 0 && adj != -100 ) return 0;
+        if( p->prio > DEFAULT_PRIO ) return 0;
+    }
 
 	return task_boost;
 }
@@ -568,6 +574,7 @@ int schedtune_task_boost_rcu_locked(struct task_struct *p)
 {
 	struct schedtune *st;
 	int task_boost;
+    int adj = p->signal->oom_score_adj;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
@@ -576,6 +583,11 @@ int schedtune_task_boost_rcu_locked(struct task_struct *p)
 	st = task_schedtune(p);
 	task_boost = st->boost;
 
+    if( task_boost > 0 ) {
+        if( adj != 0 && adj != -100 ) return 0;
+        if( p->prio > DEFAULT_PRIO ) return 0;
+    }
+
 	return task_boost;
 }
 
@@ -583,6 +595,9 @@ int schedtune_prefer_idle(struct task_struct *p)
 {
 	struct schedtune *st;
 	int prefer_idle;
+    int adj = p->signal->oom_score_adj;
+    if( adj != 0 && adj != -100 ) return 0;
+    if( p->prio > DEFAULT_PRIO ) return 0;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
@@ -651,7 +666,7 @@ boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
 {
 	struct schedtune *st = css_st(css);
 
-	if (boost < 0 || boost > 100)
+	if (boost < -100 || boost > 100)
 		return -EINVAL;
 
 	st->boost = boost;
