@@ -2124,7 +2124,7 @@ int smblib_get_prop_input_suspend(struct smb_charger *chg,
 		= (get_client_vote(chg->usb_icl_votable, USER_VOTER) == 0)
 		 && get_client_vote(chg->dc_suspend_votable, USER_VOTER);*/
 
-    val->intval	= (get_client_vote(chg->chg_disable_votable, BYPASS_VOTER) == 0);
+    val->intval	= (get_client_vote(chg->chg_disable_votable, BYPASS_VOTER) == 1);
 	return 0;
 }
 
@@ -2767,14 +2767,14 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
 		smblib_err(chg, "Couldn't vote to %s DC rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
-	}
+	}*/
 
 	if (chg->use_bq_pump)
-		chg->bq_input_suspend = !!(val->intval);*/
+		chg->bq_input_suspend = !!(val->intval);
 
     rc = vote(chg->chg_disable_votable, BYPASS_VOTER, (bool)val->intval, 0);
 	if (rc < 0) {
-		smblib_err(chg, "Couldn't vote to %s USB rc=%d\n",
+		smblib_err(chg, "Couldn't vote to %s BYPASS_VOTER rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
 	}
@@ -2881,12 +2881,18 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 		return vote(chg->chg_disable_votable,
 			THERMAL_DAEMON_VOTER, true, 0);
 
-	vote(chg->chg_disable_votable, THERMAL_DAEMON_VOTER, false, 0);
-	if (chg->system_temp_level == 0)
-		return vote(chg->fcc_votable, THERMAL_DAEMON_VOTER, false, 0);
+    if( get_client_vote(chg->chg_disable_votable, BYPASS_VOTER) == 1 ) {
+        return vote(chg->chg_disable_votable, THERMAL_DAEMON_VOTER, true, 0);
+    } 
 
-	vote(chg->fcc_votable, THERMAL_DAEMON_VOTER, true,
-			chg->thermal_mitigation[chg->system_temp_level]);
+    vote(chg->chg_disable_votable, THERMAL_DAEMON_VOTER, false, 0);
+    
+	if (chg->system_temp_level == 0)
+	    return vote(chg->fcc_votable, THERMAL_DAEMON_VOTER, false, 0);
+
+    vote(chg->fcc_votable, THERMAL_DAEMON_VOTER, true,
+	    chg->thermal_mitigation[chg->system_temp_level]);
+
 	return 0;
 }
 
