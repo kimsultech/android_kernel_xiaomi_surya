@@ -711,8 +711,8 @@
 
 		trips {
 			active-config {
-				temperature = <95000>;
-				hysteresis = <30000>;
+				temperature = <115000>;
+				hysteresis = <3000>;
 				type = "passive";
 			};
 		};
@@ -727,8 +727,8 @@
 
 		trips {
 			active-config {
-				temperature = <95000>;
-				hysteresis = <30000>;
+				temperature = <115000>;
+				hysteresis = <3000>;
 				type = "passive";
 			};
 		};
@@ -792,7 +792,7 @@
 		trips {
 			cpu0_config: cpu0-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -815,7 +815,7 @@
 		trips {
 			cpu1_config: cpu1-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -838,7 +838,7 @@
 		trips {
 			cpu2_config: cpu2-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -861,7 +861,7 @@
 		trips {
 			cpu3_config: cpu3-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -884,7 +884,7 @@
 		trips {
 			cpu4_config: cpu4-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -907,7 +907,7 @@
 		trips {
 			cpu5_config: cpu5-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -930,7 +930,7 @@
 		trips {
 			cpu6_0_config: cpu6-0-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -953,7 +953,7 @@
 		trips {
 			cpu6_1_config: cpu6-1-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -976,7 +976,7 @@
 		trips {
 			cpu7_0_config: cpu7-0-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -999,7 +999,7 @@
 		trips {
 			cpu7_1_config: cpu7-1-config {
 				temperature = <110000>;
-				hysteresis = <10000>;
+				hysteresis = <5000>;
 				type = "passive";
 			};
 		};
@@ -1722,7 +1722,7 @@
 		trips {
 			q6_hvx_trip0: q6-hvx-trip0 {
 				temperature = <95000>;
-				hysteresis = <20000>;
+				hysteresis = <10000>;
 				type = "passive";
 			};
 
@@ -1765,27 +1765,27 @@
 		wake-capable-sensor;
 		trips {
 			batt_trip0: batt-trip0 {
-				temperature = <43000>;
-				hysteresis = <4000>;
+				temperature = <49000>;
+				hysteresis = <2000>;
 				type = "passive";
 			};
 			batt_trip1: batt-trip1 {
-				temperature = <45000>;
+				temperature = <51000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			batt_trip2: batt-trip2 {
-				temperature = <47000>;
+				temperature = <53000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			batt_trip3: batt-trip3 {
+				temperature = <55000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			modem_trip0: modem-trip0 {
-				temperature = <48000>;
-				hysteresis = <4000>;
-				type = "passive";
-			};
-			batt_trip3: batt-trip3 {
-				temperature = <49000>;
+				temperature = <51000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
@@ -1922,5 +1922,34 @@
 				cooling-device = <&pm6150_charger 6 6>;
 			};
 		};
+	};
+
+	/* Disable QCT default BCL throttling */
+	soc {
+		status = "disabled";
+	};
+
+	pm6150-bcl-lvl0 {
+		status = "disabled";
+	};
+
+	pm6150-bcl-lvl1	{
+		status = "disabled";
+	};
+
+	pm6150-bcl-lvl2	{
+		status = "disabled";
+	};
+
+	pm6150l-bcl-lvl0 {
+		status = "disabled";
+	};
+
+	pm6150l-bcl-lvl1 {
+		status = "disabled";
+	};
+
+	pm6150l-bcl-lvl2 {
+		status = "disabled";
 	};
 };
