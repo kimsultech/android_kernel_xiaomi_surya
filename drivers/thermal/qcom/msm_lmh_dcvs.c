@@ -304,6 +304,9 @@ static int lmh_set_trips(void *data, int low, int high)
 	struct limits_dcvs_hw *hw = (struct limits_dcvs_hw *)data;
 	int ret = 0;
 
+    if( low == INT_MIN ) low = high - 3000;
+    if( high == INT_MAX ) high = low + 3000;
+
 	if (high >= LIMITS_TEMP_HIGH_THRESH_MAX || low < 0) {
 		pr_err("Value out of range low:%d high:%d\n",
 				low, high);
@@ -314,6 +317,7 @@ static int lmh_set_trips(void *data, int low, int high)
 	if (low >= high)
 		return -EINVAL;
 
+    pr_info("LIMITS_TRIP_HI:%d, LIMITS_TRIP_ARM:%d", high, low);
 	hw->temp_limits[LIMITS_TRIP_HI] = (uint32_t)high;
 	hw->temp_limits[LIMITS_TRIP_ARM] = (uint32_t)low;
 
@@ -395,7 +399,7 @@ static int lmh_set_max_limit(int cpu, u32 freq)
 	ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
 				  LIMITS_FREQ_CAP, max_freq,
 				  (max_freq == U32_MAX) ? 0 : 1, 1);
-	lmh_dcvs_notify(hw);
+	//lmh_dcvs_notify(hw);
 	mutex_unlock(&hw->access_lock);
 
 	return ret;
