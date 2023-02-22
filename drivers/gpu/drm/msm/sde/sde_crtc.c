@@ -89,7 +89,7 @@ static struct sde_crtc_custom_events custom_events[] = {
  */
 #define DEFAULT_FPS_PERIOD_1_SEC	1000000
 #define MAX_FPS_PERIOD_5_SECONDS	5000000
-#define MAX_FRAME_COUNT			1000
+#define MAX_FRAME_COUNT			500
 #define MILI_TO_MICRO			1000
 
 /* default line padding ratio limitation */
