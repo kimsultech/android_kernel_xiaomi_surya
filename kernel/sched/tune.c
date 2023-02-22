@@ -2,6 +2,7 @@
 #include <linux/err.h>
 #include <linux/kernel.h>
 #include <linux/percpu.h>
+#include <linux/moduleparam.h>
 #include <linux/printk.h>
 #include <linux/rcupdate.h>
 #include <linux/slab.h>
@@ -10,6 +11,23 @@
 
 #include "sched.h"
 #include "tune.h"
+
+#ifdef MODULE_PARAM_PREFIX
+#undef MODULE_PARAM_PREFIX
+#endif
+#define MODULE_PARAM_PREFIX "sched."
+
+bool enable_boost_all = false;
+module_param(enable_boost_all, bool, 0664);
+
+bool enable_boost_low_prio = false;
+module_param(enable_boost_low_prio, bool, 0664);
+
+bool enable_boost_freq = true;
+module_param(enable_boost_freq, bool, 0664);
+
+int boost_default_value = 0;
+module_param(boost_default_value, int, 0664);
 
 bool schedtune_initialized = false;
 extern struct reciprocal_value schedtune_spc_rdiv;
@@ -534,6 +552,8 @@ int schedtune_cpu_boost(int cpu)
 	struct boost_groups *bg;
 	u64 now;
 
+    if( !enable_boost_freq ) return 0;
+
 	bg = &per_cpu(cpu_boost_groups, cpu);
 	now = sched_clock_cpu(cpu);
 
@@ -548,7 +568,7 @@ int schedtune_task_boost(struct task_struct *p)
 {
 	struct schedtune *st;
 	int task_boost;
-    int adj = p->signal->oom_score_adj;
+    int adj = 0;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
@@ -557,11 +577,12 @@ int schedtune_task_boost(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	task_boost = st->boost;
+    adj = p->signal->oom_score_adj;
 	rcu_read_unlock();
 
     if( task_boost > 0 ) {
-        if( adj != 0 && adj != -100 ) return 0;
-        if( p->prio > DEFAULT_PRIO ) return 0;
+        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) return boost_default_value;
+        if( likely(!enable_boost_low_prio) && p->prio > DEFAULT_PRIO ) return 0;
     }
 
 	return task_boost;
@@ -584,8 +605,8 @@ int schedtune_task_boost_rcu_locked(struct task_struct *p)
 	task_boost = st->boost;
 
     if( task_boost > 0 ) {
-        if( adj != 0 && adj != -100 ) return 0;
-        if( p->prio > DEFAULT_PRIO ) return 0;
+        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) return boost_default_value;
+        if( likely(!enable_boost_low_prio) && p->prio > DEFAULT_PRIO ) return 0;
     }
 
 	return task_boost;
@@ -596,11 +617,12 @@ int schedtune_prefer_idle(struct task_struct *p)
 	struct schedtune *st;
 	int prefer_idle;
     int adj = p->signal->oom_score_adj;
-    if( adj != 0 && adj != -100 ) return 0;
-    if( p->prio > DEFAULT_PRIO ) return 0;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
+
+    if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) return 0;
+    if( likely(!enable_boost_low_prio) && p->prio > DEFAULT_PRIO ) return 0;
 
 	/* Get prefer_idle value */
 	rcu_read_lock();
