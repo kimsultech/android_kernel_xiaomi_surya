@@ -85,7 +85,7 @@ static struct sys_config sys_config = {
 	.ibat_minus_deviation_val = 600,
 	.ibat_plus_deviation_val = 500,
 
-	.fc2_taper_current		= 2200,
+	.fc2_taper_current		= 1500,
 	.flash2_policy.down_steps	= -1,
 	.flash2_policy.volt_hysteresis	= 50,
 
