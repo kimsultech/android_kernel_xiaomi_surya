@@ -26,7 +26,7 @@ module_param(enable_boost_low_prio, bool, 0664);
 bool enable_boost_freq = true;
 module_param(enable_boost_freq, bool, 0664);
 
-int boost_default_value = 0;
+int boost_default_value = 1;
 module_param(boost_default_value, int, 0664);
 
 bool schedtune_initialized = false;
@@ -570,6 +570,8 @@ int schedtune_task_boost(struct task_struct *p)
 	int task_boost;
     int adj = 0;
 
+    if (p->flags & PF_KTHREAD) return 0;
+
 	if (unlikely(!schedtune_initialized))
 		return 0;
 
@@ -596,6 +598,8 @@ int schedtune_task_boost_rcu_locked(struct task_struct *p)
 	struct schedtune *st;
 	int task_boost;
     int adj = p->signal->oom_score_adj;
+
+    if (p->flags & PF_KTHREAD) return 0;
 
 	if (unlikely(!schedtune_initialized))
 		return 0;
