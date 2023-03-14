@@ -61,9 +61,9 @@
 
 #define LIMITS_FREQ_CAP			0x46434150
 
-#define LIMITS_TEMP_DEFAULT		75000
+#define LIMITS_TEMP_DEFAULT		120000
 #define LIMITS_TEMP_HIGH_THRESH_MAX	120000
-#define LIMITS_LOW_THRESHOLD_OFFSET	500
+#define LIMITS_LOW_THRESHOLD_OFFSET	1000
 #define LIMITS_POLLING_DELAY_MS		10
 #define LIMITS_CLUSTER_REQ_OFFSET	0x704
 #define LIMITS_CLUSTER_INT_CLR_OFFSET	0x8
@@ -323,18 +323,26 @@ static int lmh_set_trips(void *data, int low, int high)
 
 	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
 				  LIMITS_ARM_THRESHOLD, low, 0, 0);
-	if (ret)
+	if (ret) {
+        pr_err("LIMITS_ARM_THRESHOLD set error %d", ret);
 		return ret;
+    }
+
 	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
 				  LIMITS_HI_THRESHOLD, high, 0, 0);
-	if (ret)
+	if (ret) {
+        pr_err("LIMITS_HI_THRESHOLD set error %d", ret);
 		return ret;
+    }
+
 	ret =  limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
 				  LIMITS_LOW_THRESHOLD,
 				  high - LIMITS_LOW_THRESHOLD_OFFSET,
 				  0, 0);
-	if (ret)
+	if (ret) {
+        pr_err("LIMITS_LOW_THRESHOLD set error %d", ret);
 		return ret;
+    }
 
 	return ret;
 }
@@ -399,7 +407,7 @@ static int lmh_set_max_limit(int cpu, u32 freq)
 	ret = limits_dcvs_write(hw->affinity, LIMITS_SUB_FN_THERMAL,
 				  LIMITS_FREQ_CAP, max_freq,
 				  (max_freq == U32_MAX) ? 0 : 1, 1);
-	//lmh_dcvs_notify(hw);
+	lmh_dcvs_notify(hw);
 	mutex_unlock(&hw->access_lock);
 
 	return ret;
