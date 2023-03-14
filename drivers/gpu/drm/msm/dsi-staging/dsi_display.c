@@ -62,7 +62,7 @@ static const struct of_device_id dsi_display_dt_match[] = {
 };
 
 static int dynamic_refresh_rate = -1;
-static unsigned int cur_refresh_rate = 60;
+unsigned int cur_refresh_rate = 60;
 
 static void dsi_display_mask_ctrl_error_interrupts(struct dsi_display *display,
 			u32 mask, bool enable)
@@ -6747,6 +6747,7 @@ int dsi_display_validate_mode_change(struct dsi_display *display,
 			dsi_panel_get_dfps_caps(display->panel, &dfps_caps);
 			if (cur_mode->timing.refresh_rate != adj_mode->timing.refresh_rate) {
 				WRITE_ONCE(cur_refresh_rate, adj_mode->timing.refresh_rate);
+                pr_info("setrefreshrate %d\n",cur_refresh_rate);
 			}
 			if (dfps_caps.dfps_support ||
 			    dyn_clk_caps->maintain_const_fps) {
@@ -6847,6 +6848,7 @@ int dsi_display_validate_mode(struct dsi_display *display,
 
     if( display->panel == NULL ||  display->panel->cur_mode == NULL || display->panel->cur_mode->timing.refresh_rate != adj_mode.timing.refresh_rate ) {
        	WRITE_ONCE(cur_refresh_rate, mode->timing.refresh_rate);
+        pr_info("setrefreshrate %d\n",cur_refresh_rate);
     }
 
 error:
