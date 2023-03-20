@@ -17,10 +17,10 @@
 #endif
 #define MODULE_PARAM_PREFIX "sched."
 
-bool enable_boost_all = false;
+bool enable_boost_all = true;
 module_param(enable_boost_all, bool, 0664);
 
-bool enable_boost_low_prio = false;
+bool enable_boost_low_prio = true;
 module_param(enable_boost_low_prio, bool, 0664);
 
 bool enable_boost_freq = true;
@@ -28,6 +28,12 @@ module_param(enable_boost_freq, bool, 0664);
 
 int boost_default_value = 1;
 module_param(boost_default_value, int, 0664);
+
+int boost_override_silver = -1;
+module_param(boost_override_silver, int, 0664);
+
+int boost_override_gold = -1;
+module_param(boost_override_gold, int, 0664);
 
 bool schedtune_initialized = false;
 extern struct reciprocal_value schedtune_spc_rdiv;
@@ -560,6 +566,11 @@ int schedtune_cpu_boost(int cpu)
 	/* Check to see if we have a hold in effect */
 	if (schedtune_boost_timeout(now, bg->boost_ts))
 		schedtune_cpu_update(cpu, now);
+
+    if( bg->boost_max > 0 ) {
+        if( cpu < 6 &&  boost_override_silver > -1 ) return boost_override_silver;
+        if( cpu > 5 &&  boost_override_gold > -1 ) return boost_override_gold;
+    }
 
 	return bg->boost_max;
 }
