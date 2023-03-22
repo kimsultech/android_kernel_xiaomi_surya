@@ -1241,7 +1241,7 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 #if WAKEUP_GESTURE
 #ifdef CONFIG_PM
 	if (ts->dev_pm_suspend && ts->is_gesture_mode) {
-		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(700));
+		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(1500));
 		if (!ret) {
 			NVT_ERR("system(spi bus) can't finished resuming procedure, skip it");
 			return IRQ_HANDLED;
@@ -2368,17 +2368,19 @@ static int nvt_drm_notifier_callback(struct notifier_block *self, unsigned long 
 	if (!evdata || (evdata->id != 0))
 		return 0;
 
+
 	if (evdata->data && ts) {
 		blank = evdata->data;
+        NVT_LOG("event=%lu, *blank=%d\n", event, *blank);
 		if (event == DRM_EARLY_EVENT_BLANK) {
 			if (*blank == DRM_BLANK_POWERDOWN) {
-				NVT_LOG("event=%lu, *blank=%d\n", event, *blank);
+				NVT_LOG("suspend event=%lu, *blank=%d\n", event, *blank);
 				cancel_work_sync(&ts->resume_work);
 				nvt_ts_suspend(&ts->client->dev);
 			}
 		} else if (event == DRM_EVENT_BLANK) {
 			if (*blank == DRM_BLANK_UNBLANK) {
-				NVT_LOG("event=%lu, *blank=%d\n", event, *blank);
+				NVT_LOG("resume event=%lu, *blank=%d\n", event, *blank);
 				//nvt_ts_resume(&ts->client->dev);
 				queue_work(ts->workqueue, &ts->resume_work);
 			}
