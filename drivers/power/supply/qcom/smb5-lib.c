@@ -23,6 +23,7 @@
 #include <linux/pmic-voter.h>
 #include <linux/of_batterydata.h>
 #include <linux/ktime.h>
+#include <linux/module.h>
 #include <linux/gpio.h>
 #include <linux/usb/usbpd.h>
 #include "smb5-lib.h"
@@ -53,6 +54,10 @@
 	((typec_mode == POWER_SUPPLY_TYPEC_SOURCE_MEDIUM	\
 	|| typec_mode == POWER_SUPPLY_TYPEC_SOURCE_HIGH)	\
 	&& (!chg->typec_legacy || chg->typec_legacy_use_rp_icl))
+
+
+static int force_fast_charge = 1;
+module_param_named(force_fast_charge, force_fast_charge, int, 0644);
 
 static int static_limited_current = 0;
 
@@ -855,6 +860,10 @@ int smblib_set_fastcharge_mode(struct smb_charger *chg, bool enable)
 	if (!chg->bms_psy)
 		return 0;
 
+    if( !enable ) {
+        dump_stack();
+    }
+
 #ifdef CONFIG_BATT_VERIFY_BY_DS28E16
 	rc = power_supply_get_property(chg->bms_psy,
 				POWER_SUPPLY_PROP_AUTHENTIC, &pval);
@@ -1519,6 +1528,9 @@ static int smblib_get_pulse_cnt(struct smb_charger *chg, int *count)
 #define USBIN_150MA	150000
 #define USBIN_500MA	500000
 #define USBIN_900MA	900000
+#define USBIN_1000MA	1000000
+#define USBIN_1500MA	1500000
+
 static int set_sdp_current(struct smb_charger *chg, int icl_ua)
 {
 	int rc;
@@ -1527,7 +1539,7 @@ static int set_sdp_current(struct smb_charger *chg, int icl_ua)
 
 	if (icl_ua == USBIN_500MA)
 	{
-		icl_ua = USBIN_900MA;
+		icl_ua = USBIN_1500MA;
 	}
 
 	/* power source is SDP */
@@ -1545,6 +1557,8 @@ static int set_sdp_current(struct smb_charger *chg, int icl_ua)
 		icl_options = USB51_MODE_BIT;
 		break;
 	case USBIN_900MA:
+	case USBIN_1000MA:
+	case USBIN_1500MA:
 		/* USB 3.0 900mA */
 		icl_options = CFG_USB3P0_SEL_BIT | USB51_MODE_BIT;
 		break;
@@ -2367,7 +2381,7 @@ int smblib_get_prop_batt_status(struct smb_charger *chg,
 		 */
 		if (smblib_is_jeita_warm_charging(chg))
 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-		else if ((usb_online || vbus_now > 4000000) && (batt_temp > -100) && (batt_temp < 580) &&
+		else if ((usb_online || vbus_now > 3800000) && (batt_temp > -100) && (batt_temp < 580) &&
                      (POWER_SUPPLY_HEALTH_OVERHEAT != batt_health) && (POWER_SUPPLY_HEALTH_OVERVOLTAGE != batt_health)) {
 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
 		} else
@@ -2763,19 +2777,19 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
 	int rc;
 
 	/* vote 0mA when suspended */
-	/*rc = vote(chg->usb_icl_votable, USER_VOTER, (bool)val->intval, 0);
+	rc = vote(chg->usb_icl_votable, USER_VOTER, /*(bool)val->intval*/ false, 0);
 	if (rc < 0) {
 		smblib_err(chg, "Couldn't vote to %s USB rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
-	}*/
+	}
 
-	/*rc = vote(chg->dc_suspend_votable, USER_VOTER, (bool)val->intval, 0);
+	rc = vote(chg->dc_suspend_votable, USER_VOTER, /*(bool)val->intval*/ false, 0);
 	if (rc < 0) {
 		smblib_err(chg, "Couldn't vote to %s DC rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
-	}*/
+	}
 
 	if (chg->use_bq_pump)
 		chg->bq_input_suspend = !!(val->intval);
