@@ -1044,10 +1044,7 @@ static int smb5_usb_get_prop(struct power_supply *psy,
 		val->intval = get_client_vote(chg->usb_icl_votable, PD_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		if (smblib_get_fastcharge_mode(chg))
-			val->intval = 3000000;
-		else
-			rc = smblib_get_prop_input_current_max(chg, val);
+		val->intval = get_effective_result(chg->usb_icl_votable);
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
 		val->intval = POWER_SUPPLY_TYPE_USB_PD;
@@ -1240,6 +1237,8 @@ static int smb5_usb_set_prop(struct power_supply *psy,
 	struct smb5 *chip = power_supply_get_drvdata(psy);
 	struct smb_charger *chg = &chip->chg;
 	int icl, rc = 0;
+
+    pr_info("smb5_usb_set_prop: set prop %d to %d\n", psp, val->intval);
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_PD_CURRENT_MAX:

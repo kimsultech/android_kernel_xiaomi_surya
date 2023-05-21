@@ -149,7 +149,7 @@ static int cp_get_effective_fcc_val(pm_t pm_state)
 
 	effective_fcc_val = get_effective_result(pm_state.fcc_votable);
 	effective_fcc_val = effective_fcc_val / 1000;
-	pr_debug("effective_fcc_val: %d\n", effective_fcc_val);
+	pr_info("effective_fcc_val: %d\n", effective_fcc_val);
 	return effective_fcc_val;
 }
 
@@ -166,7 +166,7 @@ static int cp_get_effective_usb_icl_val(void)
 	}
 
 	effective_usb_icl_val = get_effective_result(pm_state.usb_icl_votable);
-	pr_debug("effective_usb_icl_val: %d voted by:%s\n", effective_usb_icl_val, get_effective_client(pm_state.usb_icl_votable));
+	pr_info("effective_usb_icl_val: %d voted by:%s\n", effective_usb_icl_val, get_effective_client(pm_state.usb_icl_votable));
 	return effective_usb_icl_val;
 }
 
@@ -212,7 +212,7 @@ static int qc3_get_bms_fastcharge_mode(void)
 	rc = power_supply_get_property(pm_state.bms_psy,
 				POWER_SUPPLY_PROP_FASTCHARGE_MODE, &pval);
 	if (rc < 0) {
-		pr_debug("Couldn't get fastcharge mode:%d\n", rc);
+		pr_info("Couldn't get fastcharge mode:%d\n", rc);
 		return 0;
 	}
 
@@ -237,7 +237,7 @@ static int qc3_get_batt_current_thermal_level(int *level)
 			POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT, &val);
 
 	if (rc < 0) {
-		pr_debug("Couldn't get themal level:%d\n", rc);
+		pr_info("Couldn't get themal level:%d\n", rc);
 		return rc;
 	}
 
@@ -272,7 +272,7 @@ static bool qc3_disable_cp_by_jeita_status(void)
 			POWER_SUPPLY_PROP_TEMP, &val);
 
 	if (ret < 0) {
-		pr_debug("Couldn't get batt temp prop:%d\n", ret);
+		pr_info("Couldn't get batt temp prop:%d\n", ret);
 		return false;
 	}
 

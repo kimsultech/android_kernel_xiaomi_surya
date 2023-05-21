@@ -1026,6 +1026,8 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 			usbpd_select_pdo(pdpm->pd, pdpm->apdo_selected_pdo,
 						pdpm->request_voltage * 1000,
 						pdpm->request_current * 1000);
+			pr_info("request_voltage:%d, request_current:%d\n",
+					pdpm->request_voltage, pdpm->request_current);
 		}
 		/*stop second charge pump if either of ibus is lower than 400ma during CV*/
 		if (pm_config.cp_sec_enable && pdpm->cp_sec.charge_enabled
