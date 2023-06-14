@@ -936,7 +936,7 @@ void cgroup_writeback_umount(void)
 
 static int __init cgroup_writeback_init(void)
 {
-	isw_wq = alloc_workqueue("inode_switch_wbs", 0, 0);
+	isw_wq = alloc_workqueue("inode_switch_wbs", WQ_POWER_EFFICIENT, 0);
 	if (!isw_wq)
 		return -ENOMEM;
 	return 0;
