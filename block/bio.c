@@ -2083,7 +2083,7 @@ struct bio_set *bioset_create(unsigned int pool_size,
 	if (!(flags & BIOSET_NEED_RESCUER))
 		return bs;
 
-	bs->rescue_workqueue = alloc_workqueue("bioset", WQ_MEM_RECLAIM, 0);
+	bs->rescue_workqueue = alloc_workqueue("bioset", WQ_MEM_RECLAIM | WQ_POWER_EFFICIENT, 0);
 	if (!bs->rescue_workqueue)
 		goto bad;
 

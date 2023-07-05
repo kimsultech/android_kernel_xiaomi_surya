@@ -347,7 +347,8 @@ static inline bool mmc_host_clk_gate_wq_init(struct mmc_host *host)
 	 * queue flag WQ_MEM_RECLAIM is not set, kernel warning
 	 * will be triggered.
 	 */
-	host->clk_gate_wq = create_workqueue(wq);
+	host->clk_gate_wq = alloc_workqueue(wq, WQ_MEM_RECLAIM | WQ_POWER_EFFICIENT, 0);
+
 	if (!host->clk_gate_wq) {
 		ret = false;
 		dev_err(host->parent,

@@ -135,7 +135,7 @@ int rmnet_shs_freq_init(void)
 {
 
 	if (!shs_boost_wq)
-		shs_boost_wq = alloc_workqueue("shs_boost_wq", WQ_HIGHPRI, 0);
+		shs_boost_wq = alloc_workqueue("shs_boost_wq", WQ_HIGHPRI | WQ_POWER_EFFICIENT, 0);
 
 	if (!shs_boost_wq)
 		return -EFAULT;

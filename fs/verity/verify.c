@@ -287,8 +287,8 @@ int __init fsverity_init_workqueue(void)
 	 * latency on ARM64.
 	 */
 	fsverity_read_workqueue = alloc_workqueue("fsverity_read_queue",
-						  WQ_HIGHPRI,
-						  num_online_cpus());
+						  WQ_HIGHPRI | WQ_POWER_EFFICIENT, 0
+						  /*num_online_cpus()*/);
 	if (!fsverity_read_workqueue)
 		return -ENOMEM;
 	return 0;
