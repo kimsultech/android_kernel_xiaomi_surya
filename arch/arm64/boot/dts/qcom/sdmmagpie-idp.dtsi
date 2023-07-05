@@ -400,11 +400,11 @@
 	qcom,battery-data = <&mtp_batterydata>;
 	qcom,qg-iterm-ma = <200>;
 	qcom,hold-soc-while-full;
-	qcom,linearize-soc;
+	//qcom,linearize-soc;
 	//qcom,cl-feedback-on;
 	qcom,tcss-enable;
 	qcom,bass-enable;
-	qcom,vbatt-cutoff-mv = <3200>;
+	qcom,vbatt-cutoff-mv = <3100>;
 	qcom,vbatt-low-mv = <3300>;
 	qcom,vbatt-low-cold-mv = <3500>;
 	qcom,vbatt-empty-mv = <3000>;
@@ -448,10 +448,10 @@
 			   "sbux_res",
 			   "vph_voltage";
 	qcom,battery-data = <&mtp_batterydata>;
-	qcom,usb-icl-ua = <3000000>;
+	qcom,usb-icl-ua = <3200000>;
 	qcom,auto-recharge-soc = <99>;
     qcom,fcc-max-ua = <6000000>;
-	qcom,fcc-max-ua-surya = <5200000>;
+	qcom,fcc-max-ua-surya = <6000000>;
 	qcom,fcc-max-ua-karna = <6000000>;
 	qcom,fv-max-uv = <4450000>;
 	qcom,chg-term-src = <1>;
@@ -460,9 +460,9 @@
 	//qcom,fcc-stepping-enable;
 	//qcom,suspend-input-on-debug-batt;
 	qcom,sec-charger-config = <0>;
-	qcom,thermal-mitigation = <6000000 5500000 5200000 5200000 5000000 4400000 4200000
+	qcom,thermal-mitigation = <6000000 5700000 5500000 5200000 5000000 4400000 4200000
 				   3800000 3800000 3600000 3400000 3200000 3000000 2200000
-				   1500000 900000>;
+				   1500000 500000>;
 	dpdm-supply = <&qusb_phy0>;
 	qcom,charger-temp-max = <800>;
 	qcom,smb-temp-max = <800>;
@@ -475,7 +475,7 @@
 	mi,support-ffc;
 	mi,six-pin-step-chg-params = <4250000 6000000
 								4450000 5400000
-								4480000 4000000>;
+								4480000 4500000>;
 	mi,six-pin-step-chg-params_2 = <4250000 6000000
 									4450000 5400000
 									4480000 4680000>;
