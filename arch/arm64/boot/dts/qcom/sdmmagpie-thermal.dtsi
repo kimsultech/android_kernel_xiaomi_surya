@@ -1765,62 +1765,62 @@
 		wake-capable-sensor;
 		trips {
 			batt_trip0: batt-trip0 {
-				temperature = <49000>;
-				hysteresis = <2000>;
-				type = "passive";
-			};
-			batt_trip1: batt-trip1 {
-				temperature = <51000>;
-				hysteresis = <2000>;
-				type = "passive";
-			};
-			batt_trip2: batt-trip2 {
-				temperature = <53000>;
-				hysteresis = <2000>;
-				type = "passive";
-			};
-			batt_trip3: batt-trip3 {
 				temperature = <55000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
+			batt_trip1: batt-trip1 {
+				temperature = <56000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			batt_trip2: batt-trip2 {
+				temperature = <57000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			batt_trip3: batt-trip3 {
+				temperature = <58000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
 			modem_trip0: modem-trip0 {
-				temperature = <51000>;
+				temperature = <55000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			modem_trip1_hvx_trip: modem-trip1-hvx-trip {
-				temperature = <50000>;
+				temperature = <55000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			gold_trip: gold-trip {
-				temperature = <50000>;
+				temperature = <55000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
 			batt_trip4: batt-trip4 {
-				temperature = <51000>;
+				temperature = <56000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			skin_gpu_trip: skin-gpu-trip {
-				temperature = <52000>;
+				temperature = <57000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
 			modem_trip2: modem-trip2 {
-				temperature = <52000>;
+				temperature = <58000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			silver_trip: silver-trip {
-				temperature = <54000>;
+				temperature = <59000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
 			modem_trip3: modem-trip3 {
-				temperature = <58000>;
+				temperature = <60000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
@@ -1922,34 +1922,5 @@
 				cooling-device = <&pm6150_charger 6 6>;
 			};
 		};
-	};
-
-	/* Disable QCT default BCL throttling */
-	soc {
-		status = "disabled";
-	};
-
-	pm6150-bcl-lvl0 {
-		status = "disabled";
-	};
-
-	pm6150-bcl-lvl1	{
-		status = "disabled";
-	};
-
-	pm6150-bcl-lvl2	{
-		status = "disabled";
-	};
-
-	pm6150l-bcl-lvl0 {
-		status = "disabled";
-	};
-
-	pm6150l-bcl-lvl1 {
-		status = "disabled";
-	};
-
-	pm6150l-bcl-lvl2 {
-		status = "disabled";
 	};
 };
