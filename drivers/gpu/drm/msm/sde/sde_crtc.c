@@ -68,7 +68,7 @@ static struct sde_crtc_custom_events custom_events[] = {
 };
 
 /* default input fence timeout, in ms */
-#define SDE_CRTC_INPUT_FENCE_TIMEOUT    10000
+#define SDE_CRTC_INPUT_FENCE_TIMEOUT    20000
 
 /*
  * The default input fence timeout is 2 seconds while max allowed
@@ -89,12 +89,14 @@ static struct sde_crtc_custom_events custom_events[] = {
  */
 #define DEFAULT_FPS_PERIOD_1_SEC	1000000
 #define MAX_FPS_PERIOD_5_SECONDS	5000000
-#define MAX_FRAME_COUNT			500
+#define MAX_FRAME_COUNT			120
 #define MILI_TO_MICRO			1000
 
 /* default line padding ratio limitation */
 #define MAX_VPADDING_RATIO_M		63
 #define MAX_VPADDING_RATIO_N		15
+
+#define IDLE_TIMEOUT_DEFAULT		200
 
 static inline struct sde_kms *_sde_crtc_get_kms(struct drm_crtc *crtc)
 {
@@ -864,8 +866,7 @@ static ssize_t baikal_measured_fps_show(struct device *device,
 
     baikal_fps = fps_decimal > 4 ? fps_int+1 : fps_int;
 
-	return scnprintf(buf, PAGE_SIZE,
-	"%d,%d", baikal_fps, cur_refresh_rate);
+	return scnprintf(buf, PAGE_SIZE, "%d,%d", baikal_fps, cur_refresh_rate);
 }
 
 static ssize_t measured_fps_show(struct device *device,
