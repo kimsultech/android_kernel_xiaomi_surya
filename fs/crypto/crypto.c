@@ -398,8 +398,8 @@ static int __init fscrypt_init(void)
 	 * which blocks reads from completing, over regular application tasks.
 	 */
 	fscrypt_read_workqueue = alloc_workqueue("fscrypt_read_queue",
-						 WQ_UNBOUND | WQ_HIGHPRI,
-						 num_online_cpus());
+						 WQ_POWER_EFFICIENT | WQ_HIGHPRI, 0
+						 /*num_online_cpus()*/);
 	if (!fscrypt_read_workqueue)
 		goto fail;
 

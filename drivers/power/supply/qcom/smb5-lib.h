@@ -117,9 +117,9 @@ enum print_reason {
 /* defined for distinguish qc class_a and class_b */
 #define VOL_THR_FOR_QC_CLASS_AB		12300000
 #define COMP_FOR_LOW_RESISTANCE_CABLE	100000
-#define QC_CLASS_A_CURRENT_UA		4200000
-#define HVDCP_CLASS_A_MAX_UA		3500000
-#define HVDCP_CLASS_A_FOR_CP_UA		3100000
+#define QC_CLASS_A_CURRENT_UA		4600000
+#define HVDCP_CLASS_A_MAX_UA		3000000
+#define HVDCP_CLASS_A_FOR_CP_UA		3000000
 
 #define MAX_PULSE			38
 #define MAX_PLUSE_COUNT_ALLOWED		23
@@ -157,9 +157,9 @@ enum hvdcp3_type {
 #define SDP_CURRENT_UA			500000
 #define CDP_CURRENT_UA			1500000
 #define DCP_CURRENT_UA			2400000 //HTH-99130 set DCP CURRENT TO 1.8A
-#define FLOAT_CURRENT_UA		2000000
-#define HVDCP_CURRENT_UA		4000000
-#define HVDCP_CLASS_B_CURRENT_UA		4100000
+#define FLOAT_CURRENT_UA		1500000
+#define HVDCP_CURRENT_UA		4600000
+#define HVDCP_CLASS_B_CURRENT_UA		4600000
 #define HVDCP2_CURRENT_UA		1800000
 #define HVDCP_START_CURRENT_UA		1000000
 #define HVDCP_START_CURRENT_UA_FOR_BQ	500000
@@ -966,6 +966,8 @@ int smblib_get_prop_charger_temp(struct smb_charger *chg,
 int smblib_get_prop_die_health(struct smb_charger *chg);
 int smblib_get_prop_smb_health(struct smb_charger *chg);
 int smblib_get_prop_connector_health(struct smb_charger *chg);
+int smblib_get_prop_input_current_max(struct smb_charger *chg,
+				  union power_supply_propval *val);
 int smblib_set_prop_thermal_overheat(struct smb_charger *chg,
 			       int therm_overheat);
 int smblib_get_skin_temp_status(struct smb_charger *chg);

@@ -74,8 +74,8 @@ enum hvdcp3_type {
 };
 
 #define MAIN_CHG_VOTER                  "MAIN_CHG_VOTER"
-#define QC3_MAIN_CHARGER_ICL            2000000
-#define QC3_CHARGER_ICL                 500000
+#define QC3_MAIN_CHARGER_ICL            2700000
+#define QC3_CHARGER_ICL                 5400000
 
 #define QC3P5_BQ_TAPER_FCC_VOTER       "QC3P5_BQ_TAPER_FCC_VOTER"
 #define QC3P5_BQ_TAPER_HYS_MV                  30
@@ -83,9 +83,9 @@ enum hvdcp3_type {
 
 #define HVDCP3_CLASS_B_BAT_CURRENT_MA			5400
 #define HVDCP3_CLASS_B_BUS_CURRENT_MA			2700
-#define HVDCP3_CLASS_A_BAT_CURRENT_MA			4200 
+#define HVDCP3_CLASS_A_BAT_CURRENT_MA			3600
 #define HVDCP3_CLASS_A_BUS_CURRENT_MA			2100
-#define HVDCP3P5_BUS_CURRENT_MA                                2400
+#define HVDCP3P5_BUS_CURRENT_MA                                2700
 #define HVDCP3P5_BAT_CURRENT_MA                                4800
 #define MAX_THERMAL_LEVEL			16
 /* jeita related */

@@ -442,6 +442,8 @@ static int bq2597x_enable_charge(struct bq2597x *bq, bool enable)
 	ret = bq2597x_update_bits(bq, BQ2597X_REG_0C,
 				BQ2597X_CHG_EN_MASK, val);
 
+    bq_info("bq2597x_enable_charge: %s\n", enable ? "enable" : "disable");
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(bq2597x_enable_charge);
@@ -1727,13 +1729,11 @@ static int bq2597x_init_device(struct bq2597x *bq)
 
 static int bq2597x_set_present(struct bq2597x *bq, bool present)
 {
-    if( bq->usb_present != present ) {
-      	bq->usb_present = present;
+	bq->usb_present = present;
 
-        if (present)
-    	    bq2597x_init_device(bq);
-	    return 0;
-    }
+	if (present)
+		bq2597x_init_device(bq);
+	return 0;
 }
 
 static ssize_t bq2597x_show_registers(struct device *dev,
@@ -1823,8 +1823,10 @@ static int bq2597x_charger_get_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
-		bq2597x_check_charge_enabled(bq, &bq->charge_enabled);
+        pr_info("bq2597x_check_charge_enabled:%d - 1",bq->charge_enabled);
+		ret = bq2597x_check_charge_enabled(bq, &bq->charge_enabled);
 		val->intval = bq->charge_enabled;
+        pr_info("bq2597x_check_charge_enabled:%d - 2, rc = %d",bq->charge_enabled, ret);
 		break;
 	case POWER_SUPPLY_PROP_STATUS:
 		val->intval = 0;
@@ -1963,9 +1965,12 @@ static int bq2597x_charger_set_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 		bq2597x_set_present(bq, !!val->intval);
+		bq_info("POWER_SUPPLY_PROP_PRESENT: %s\n",
+				val->intval ? "enable" : "disable");
 		break;
 	case POWER_SUPPLY_PROP_TI_SET_BUS_PROTECTION_FOR_QC3:
 		bq2597x_set_bus_protection(bq, val->intval);
+		bq_info("POWER_SUPPLY_PROP_TI_SET_BUS_PROTECTION_FOR_QC3:%d\n",val->intval);
 		break;
 	default:
 		return -EINVAL;
@@ -1980,7 +1985,6 @@ static int bq2597x_charger_is_writeable(struct power_supply *psy,
 	int ret;
 
 	switch (prop) {
-    case POWER_SUPPLY_PROP_PRESENT:
 	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
 	case POWER_SUPPLY_PROP_TI_SET_BUS_PROTECTION_FOR_QC3:
 		ret = 1;

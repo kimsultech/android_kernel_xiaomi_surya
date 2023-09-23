@@ -2124,8 +2124,7 @@ cpu_util_freq_walt(int cpu, struct sched_walt_cpu_load *walt_load)
 						SCHED_CAPACITY_SHIFT);
 		rq->old_estimated_time = pl;
 
-		nl = div64_u64(nl * (100 + boost),
-		walt_cpu_util_freq_divisor);
+		nl = div64_u64(nl * (100 + boost), walt_cpu_util_freq_divisor);
 		pl = div64_u64(pl * (100 + boost), 100);
 
 		walt_load->prev_window_util = util;

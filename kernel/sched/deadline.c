@@ -1406,6 +1406,7 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 		 * it, as it's going to return back to its original
 		 * scheduling class after this.
 		 */
+        p->dl.dl_throttled = 0;
 		BUG_ON(!p->dl.dl_boosted || flags != ENQUEUE_REPLENISH);
 		return;
 	}

@@ -54,7 +54,7 @@
 
 #include "cp_qc30.h"
 
-#define BATT_MAX_CHG_VOLT		4400
+#define BATT_MAX_CHG_VOLT		4480
 #define BATT_FAST_CHG_CURR		5400
 #define	BUS_OVP_THRESHOLD		12000
 #define	BUS_OVP_ALARM_THRESHOLD		9500
@@ -85,7 +85,7 @@ static struct sys_config sys_config = {
 	.ibat_minus_deviation_val = 600,
 	.ibat_plus_deviation_val = 500,
 
-	.fc2_taper_current		= 1500,
+	.fc2_taper_current		= 2200,
 	.flash2_policy.down_steps	= -1,
 	.flash2_policy.volt_hysteresis	= 50,
 
@@ -371,9 +371,12 @@ static void cp_update_fc_status(void)
 		pm_state.bq2597x.ibat_curr = pm_state.ibat_now;
 	}
 
-	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
+	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_CHARGE_ENABLED, &val);
 	if (!ret)
 		pm_state.bq2597x.charge_enabled = val.intval;
+
+	pr_info("pm_state.bq2597x.charge_enabled:check %d\n", pm_state.bq2597x.charge_enabled);
+
 
 	ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_TI_ALARM_STATUS, &val);
 	if (!ret) {
@@ -420,6 +423,7 @@ static int cp_enable_fc(bool enable)
 	ret = power_supply_set_property(psy,
 			POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
 
+    pr_info("cp_enable_fc:set %d", enable);
 	return ret;
 }
 
@@ -454,6 +458,8 @@ static int cp_enable_sw(bool enable)
 	ret = power_supply_set_property(psy,
 			POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED, &val);
 
+	pr_info("cp_enable_sw:set %d\n",enable);
+
 	return ret;
 }
 
@@ -470,6 +476,8 @@ static int cp_limit_sw(bool enable)
 	val.intval = enable;
 	ret = power_supply_set_property(psy,
 			POWER_SUPPLY_PROP_BATTERY_CHARGING_LIMITED, &val);
+
+	pr_info("cp_limit_sw:set %d\n",enable);
 
 	return ret;
 }
@@ -489,7 +497,7 @@ static int cp_check_fc_enabled(void)
 	if (!ret)
 		pm_state.bq2597x.charge_enabled = !!val.intval;
 
-	pr_debug("pm_state.bq2597x.charge_enabled: %d\n",
+	pr_info("pm_state.bq2597x.charge_enabled:check %d\n",
 			pm_state.bq2597x.charge_enabled);
 	return ret;
 }
@@ -509,7 +517,7 @@ static int cp_check_sw_enabled(void)
 	if (!ret)
 		pm_state.sw_chager.charge_enabled = !!val.intval;
 
-	pr_debug("pm_state.sw_chager.charge_enabled: %d\n",
+	pr_info("pm_state.sw_chager.charge_enabled:check %d\n",
 			pm_state.sw_chager.charge_enabled);
 	return ret;
 }
@@ -529,7 +537,7 @@ static int cp_check_sw_limited(void)
 	if (!ret)
 		pm_state.sw_chager.charge_limited = !!val.intval;
 
-	pr_debug("pm_state.sw_chager.charge_limited: %d\n",
+	pr_info("pm_state.sw_chager.charge_limited:check %d\n",
 			pm_state.sw_chager.charge_limited);
 	return ret;
 }
@@ -578,7 +586,7 @@ static int cp_reset_vbus_volt(void)
 			cp_tune_vbus_volt(VOLT_DOWN);
 			cp_update_fc_status();
 			qc3p5_reset_vbus_retry++;
-			usleep_range(10000, 10010);
+			usleep_range(30000, 30010);
 			pr_err("qc3p5_reset_vbus_retry=%d,vbus=%d\n", qc3p5_reset_vbus_retry, pm_state.bq2597x.vbus_volt);
 			if (qc3p5_reset_vbus_retry > 300) {
 				pr_err("Failed to reset qc3.5 adapter volt to 6.55v or less\n");
@@ -663,7 +671,7 @@ static int cp_flash2_charge(unsigned int port)
 	static int ibus_limit,ibat_limit;
 	int thermal_level = 0;
 	uint16_t effective_fcc_val = cp_get_effective_fcc_val(pm_state);
-	uint16_t effective_ibus_val = effective_fcc_val/2;
+	uint16_t effective_ibus_val = effective_fcc_val;
 	if (ibus_limit == 0)
 		ibus_limit = pm_state.ibus_lmt_curr;
 	ibus_limit = min(effective_ibus_val, pm_state.ibus_lmt_curr);
@@ -722,13 +730,13 @@ static int cp_flash2_charge(unsigned int port)
 		}
 	} else if (!pm_state.batt_cell_volt_triggered) {
 		cp_get_batt_capacity();
-		if (pm_state.bq2597x.vbat_volt >= 4200 || pm_state.capacity > 29) {
+		if (pm_state.bq2597x.vbat_volt >= 4100 || pm_state.capacity > 10) {
 			sys_config.ibus_minus_deviation_val = 550;
 			sys_config.ibus_plus_deviation_val = 200;
 			sys_config.ibat_minus_deviation_val = 1050;
 			sys_config.ibat_plus_deviation_val = 50;
 			pm_state.batt_cell_volt_triggered = true;
-			pr_debug("batt cell volt > 4200mv or batt soc > 29%, modify bq qc3 adjust parameters\n");
+			pr_debug("batt cell volt > 4100mv or batt soc > 10, modify bq qc3 adjust parameters\n");
 		}
 	}
 
@@ -772,7 +780,7 @@ static int cp_flash2_charge(unsigned int port)
 		return -CP_ENABLE_FAIL;
 	else if (thermal_level >= MAX_THERMAL_LEVEL
 			|| pm_state.is_temp_out_fc2_range) {
-		pr_debug("thermal level (%d) too high or batt temp is out of fc2 range, pm_state.is_temp_out_fc2_range:%d\n",
+		pr_info("thermal level (%d) too high or batt temp is out of fc2 range, pm_state.is_temp_out_fc2_range:%d\n",
 				thermal_level, pm_state.is_temp_out_fc2_range);
 		return CP_ENABLE_FAIL;
 	}
@@ -813,7 +821,7 @@ const unsigned char *pm_state_str[] = {
 static void cp_move_state(pm_sm_state_t state)
 {
 #if 1
-	pr_debug("pm_state change:%s -> %s\n",
+	pr_info("pm_state change:%s -> %s\n",
 		pm_state_str[pm_state.state], pm_state_str[state]);
 	pm_state.state_log[pm_state.log_idx] = pm_state.state;
 	pm_state.log_idx++;
@@ -843,6 +851,7 @@ void cp_statemachine(unsigned int port)
 
 	switch (pm_state.state) {
 	case CP_STATE_DISCONNECT:
+        pr_info("CP_STATE_DISCONNECT\n");
 		if (!pm_state.fcc_votable)
 			pm_state.fcc_votable = find_votable("FCC");
 		if (pm_state.fcc_votable)
@@ -875,6 +884,7 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_ENTRY:
+		pr_info("enable hw charger and check enable\n");
 		if (!pm_state.fcc_votable)
 			pm_state.fcc_votable = find_votable("FCC");
 		if (pm_state.fcc_votable)
@@ -884,7 +894,7 @@ void cp_statemachine(unsigned int port)
 		cp_get_batt_capacity();
 		qc3_get_batt_current_thermal_level(&thermal_level);
 		pm_state.is_temp_out_fc2_range = qc3_disable_cp_by_jeita_status();
-		pr_debug("is_temp_out_fc2_range:%d\n", pm_state.is_temp_out_fc2_range);
+		pr_info("is_temp_out_fc2_range:%d\n", pm_state.is_temp_out_fc2_range);
 
 		if (pm_state.usb_type == POWER_SUPPLY_TYPE_USB_HVDCP_3
 			|| pm_state.usb_type == POWER_SUPPLY_TYPE_USB_HVDCP_3P5) {
@@ -894,12 +904,13 @@ void cp_statemachine(unsigned int port)
 			if (thermal_level >= MAX_THERMAL_LEVEL
 					|| pm_state.is_temp_out_fc2_range) {
 				cp_move_state(CP_STATE_SW_ENTRY);
-				pr_debug("thermal too high or batt temp out of range or slowly charging, waiting...\n");
-			} else if (pm_state.bq2597x.vbat_volt < sys_config.min_vbat_start_flash2)
+				pr_info("thermal too high or batt temp out of range or slowly charging, waiting...\n");
+			} else if (pm_state.bq2597x.vbat_volt < sys_config.min_vbat_start_flash2) {
 				cp_move_state(CP_STATE_SW_ENTRY);
-			else if ( /*(pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50
-                    && pm_state.bq2597x.ibat_curr < sys_config.fc2_taper_current)
-					|| */ pm_state.capacity >= HIGH_CAPACITY_TRH) {
+                pr_info("battery current is less than 3250 mV, limit charging current...\n");
+			} else if ( pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 100
+                    /*&& pm_state.bq2597x.ibat_curr < sys_config.fc2_taper_current) */
+					|| pm_state.capacity >= HIGH_CAPACITY_TRH) {
 				pm_state.sw_near_cv = true;
 				cp_move_state(CP_STATE_SW_ENTRY);
 			} else {
@@ -909,6 +920,7 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_SW_ENTRY:
+		pr_info("enable sw charger and check enable\n");
 		if (!pm_state.fcc_votable)
                         pm_state.fcc_votable = find_votable("FCC");
                 if (pm_state.fcc_votable)
@@ -926,7 +938,7 @@ void cp_statemachine(unsigned int port)
 
 	case CP_STATE_SW_ENTRY_2:
 		pr_err("vbat=%d,vbus=%d\n", pm_state.bq2597x.vbat_volt, pm_state.bq2597x.vbus_volt);
-		pr_debug("enable sw charger and check enable\n");
+		pr_info("enable sw charger and check enable 2\n");
 		cp_enable_sw(true);
 		usb_icl_value = cp_get_effective_usb_icl_val();
 		if (pm_state.usb_icl_votable && (usb_icl_value < QC3_MAIN_CHARGER_ICL))
@@ -939,6 +951,7 @@ void cp_statemachine(unsigned int port)
 
 	case CP_STATE_SW_LOOP:
 		pr_err("vbat=%d,vbus=%d\n", pm_state.bq2597x.vbat_volt, pm_state.bq2597x.vbus_volt);
+		pr_info("CP_STATE_SW_LOOP\n");
 		qc3_get_batt_current_thermal_level(&thermal_level);
 		if (retry_enable_bq_count >= 5) {
 			pr_debug("retry_enable_bq_count=%d\n", retry_enable_bq_count);
@@ -948,7 +961,7 @@ void cp_statemachine(unsigned int port)
 		pm_state.is_temp_out_fc2_range = qc3_disable_cp_by_jeita_status();
 		if (thermal_level < MAX_THERMAL_LEVEL && !pm_state.is_temp_out_fc2_range && recovery) {
 			if (tune_vbus_count >= 2) {
-				pr_debug("unsupport qc3, use sw charging\n");
+				pr_info("unsupport qc3, use sw charging\n");
 				break;
 			}
 			tune_vbus_count++;
@@ -957,27 +970,32 @@ void cp_statemachine(unsigned int port)
 		} else {
             if( thermal_level >= MAX_THERMAL_LEVEL || pm_state.is_temp_out_fc2_range ) {
     			pr_info("thermal(%d) too high or batt temp out of range (%d, %d)\n", thermal_level, pm_state.is_temp_out_fc2_range, recovery);
-                break;
+                //break;
             }
 		}
 		cp_get_batt_capacity();
-		if ( pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50
-              && pm_state.capacity >= HIGH_CAPACITY_TRH) {
+		if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 100
+              || pm_state.capacity >= HIGH_CAPACITY_TRH) {
+              	pr_info("battery volt: %d is ok, pm_state.sw_near_cv = true\n",
+					pm_state.bq2597x.vbat_volt);
 				pm_state.sw_near_cv = true;
 		}
 		if (!pm_state.sw_near_cv && !recovery) {
 			if (pm_state.bq2597x.vbat_volt > sys_config.min_vbat_start_flash2) {
-				pr_debug("battery volt: %d is ok, proceeding to flash charging...\n",
+				pr_info("battery volt: %d is ok, proceeding to flash charging...\n",
 					pm_state.bq2597x.vbat_volt);
 				usb_icl_value = cp_get_effective_usb_icl_val();
-				if (pm_state.usb_icl_votable && (usb_icl_value > QC3_CHARGER_ICL))
+				if (pm_state.usb_icl_votable && (usb_icl_value > QC3_CHARGER_ICL)) {
+    				pr_info("vote for QC3 ICL...\n");
 					vote(pm_state.usb_icl_votable, MAIN_CHG_VOTER, true, QC3_CHARGER_ICL);
+                }
 				cp_move_state(CP_STATE_FLASH2_ENTRY);
 			}
 		}
 		break;
 
 	case CP_STATE_FLASH2_ENTRY:
+		pr_info("CP_STATE_FLASH2_ENTRY\n");
 		if (!pm_state.sw_chager.charge_limited) {
 			cp_limit_sw(true);
 			cp_update_sw_status();
@@ -1012,12 +1030,13 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_FLASH2_ENTRY_1:
+		pr_info("CP_STATE_FLASH2_ENTRY_1\n");
 		if (pm_state.usb_type == POWER_SUPPLY_TYPE_USB_HVDCP_3P5) {
 			cp_update_fc_status();
 			pr_err("vbat=%d,vbus=%d\n", pm_state.bq2597x.vbat_volt, pm_state.bq2597x.vbus_volt);
 			while (pm_state.bq2597x.vbus_volt < (pm_state.bq2597x.vbat_volt * 2 + BUS_VOLT_INIT_UP - 50)) {
 				cp_tune_vbus_volt(VOLT_UP);
-				usleep_range(10000, 10010);
+				usleep_range(30000, 30010);
 				cp_update_fc_status();
 				tune_vbus_retry++;
 				pr_err("tune_vbus_retry=%d,vbus=%d\n", tune_vbus_retry, pm_state.bq2597x.vbus_volt);
@@ -1040,7 +1059,7 @@ void cp_statemachine(unsigned int port)
 				break;
 			}
 
-		if (tune_vbus_retry > 23) {
+		if (tune_vbus_retry > 90) {
 			pr_err("Failed to tune adapter volt into valid range, charge with switching charger\n");
 			pm_state.sw_fc2_init_fail = true;
 			recovery = true;
@@ -1050,6 +1069,7 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_FLASH2_ENTRY_3:
+		pr_info("CP_STATE_FLASH2_ENTRY_3\n");
 		if (pm_state.bq2597x.vbus_volt >
 				(pm_state.bq2597x.vbat_volt * 2 + BUS_VOLT_INIT_UP + 200)) {
 			pr_err("vbus volt is too high, wait it down\n");
@@ -1081,6 +1101,7 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_FLASH2_TUNE:
+		pr_info("CP_STATE_FLASH2_TUNE\n");
 		ret = cp_flash2_charge(port);
 		if (ret == -ADC_ERR) {
 			pr_err("Move to stop charging:%d\n", ret);
@@ -1102,6 +1123,7 @@ void cp_statemachine(unsigned int port)
 		break;
 
 	case CP_STATE_FLASH2_DELAY:
+		pr_info("CP_STATE_FLASH2_DELAY\n");
 		cp_move_state(CP_STATE_FLASH2_TUNE);
 		break;
 
@@ -1164,7 +1186,7 @@ static int cp_qc30_notifier_call(struct notifier_block *nb,
 		} else if (pm_state.usb_type == POWER_SUPPLY_TYPE_UNKNOWN && usb_hvdcp3_on == true) {
 			cancel_delayed_work(&pm_state.qc3_pm_work);
 			schedule_delayed_work(&pm_state.qc3_pm_work, 0);
-			pr_debug("pm_state.usb_type: %d\n", pm_state.usb_type);
+			pr_info("pm_state.usb_type: %d\n", pm_state.usb_type);
 			usb_hvdcp3_on = false;
 		}
 	}

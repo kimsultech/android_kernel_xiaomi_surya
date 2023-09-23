@@ -847,24 +847,24 @@ static int handle_jeita(struct step_chg_info *chip)
 	}
 	
 	if (pval.intval) {
-		if (batt_soc <= 80) {
-    		rc = power_supply_get_property(chip->batt_psy,
-	    			POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
-		    chg_term_current = pval.intval;
-
-		    if ((chg_term_current == FFC_LOW_TEMP_CHG_TERM_CURRENT)
-    			&& (batt_temp > FFC_CHG_TERM_TEMP_THRESHOLD + 10)) {
-    				chg_term_current = FFC_HIGH_TEMP_CHG_TERM_CURRENT;
-    				pval.intval = chg_term_current;
-    				rc = power_supply_set_property(chip->batt_psy,
-    					POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
-    		} else if ((chg_term_current == FFC_HIGH_TEMP_CHG_TERM_CURRENT)
-    			&& (batt_temp < FFC_CHG_TERM_TEMP_THRESHOLD - 10)) {
-    				chg_term_current = FFC_LOW_TEMP_CHG_TERM_CURRENT;
-    				pval.intval = chg_term_current;
-    				rc = power_supply_set_property(chip->batt_psy,
-    						POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
-    		}
+		if (batt_soc < 95) {
+		rc = power_supply_get_property(chip->batt_psy,
+				POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
+		chg_term_current = pval.intval;
+		if ((chg_term_current == FFC_LOW_TEMP_CHG_TERM_CURRENT)
+			&& (batt_temp > FFC_CHG_TERM_TEMP_THRESHOLD + 10)) {
+				chg_term_current = FFC_HIGH_TEMP_CHG_TERM_CURRENT;
+				pval.intval = chg_term_current;
+				rc = power_supply_set_property(chip->batt_psy,
+					POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
+		} else if ((chg_term_current == FFC_HIGH_TEMP_CHG_TERM_CURRENT)
+			&& (batt_temp < FFC_CHG_TERM_TEMP_THRESHOLD - 10)) {
+				chg_term_current = FFC_LOW_TEMP_CHG_TERM_CURRENT;
+				pval.intval = chg_term_current;
+				rc = power_supply_set_property(chip->batt_psy,
+						POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT, &pval);
+		}
+		pr_info("batt_temp = %d, ffc_chg_term_current=%d\n", batt_temp, chg_term_current);
 		}
 	}
 
@@ -964,26 +964,24 @@ update_time:
 	  pr_err("lct Failed to get batt-type rc=%d\n", rc);
           return rc;
 	}
-	
-	if (strcmp(pval.strval,"m703-pm7150b-atl-5160mah") == 0 || 
-        strcmp(pval.strval,"m703-atl-6000mah") == 0 ) {
-        if (ffc_chg_term_no_work && (batt_soc == 100)) {
-            ffc_chg_term_no_work = false;
-            schedule_delayed_work(&chip->ffc_chg_term_current_work,
-                msecs_to_jiffies(GET_CONFIG_DELAY_MS*5));
-            pr_err("lct ffc_chg_term_no_work=%d\n", ffc_chg_term_no_work);
-        } else if ((batt_soc < 100) && (!ffc_chg_term_no_work || short_time_high_temp)) {
-            if (!ffc_chg_term_no_work)
-                ffc_chg_term_no_work = true;
-            if (short_time_high_temp) {
-                short_time_high_temp = false;
-                pval.intval = true;
-                rc = power_supply_set_property(chip->batt_psy,
-                    POWER_SUPPLY_PROP_CHARGING_ENABLED, &pval);
-            }
-            pr_err("lct ffc_chg_term_no_work=%d,short_time_high_temp=%d\n", ffc_chg_term_no_work,short_time_high_temp);
+	if (strcmp(pval.strval,"m703-pm7150b-atl-5160mah") == 0){
+          if (ffc_chg_term_no_work && (batt_soc == 100)) {
+                  ffc_chg_term_no_work = false;
+                  schedule_delayed_work(&chip->ffc_chg_term_current_work,
+                          msecs_to_jiffies(GET_CONFIG_DELAY_MS*5));
+                  pr_err("lct ffc_chg_term_no_work=%d\n", ffc_chg_term_no_work);
+          } else if ((batt_soc < 100) && (!ffc_chg_term_no_work || short_time_high_temp)) {
+                  if (!ffc_chg_term_no_work)
+                          ffc_chg_term_no_work = true;
+                 if (short_time_high_temp) {
+                          short_time_high_temp = false;
+                          pval.intval = true;
+                          rc = power_supply_set_property(chip->batt_psy,
+                          POWER_SUPPLY_PROP_CHARGING_ENABLED, &pval);
+                    }
+                    pr_err("lct ffc_chg_term_no_work=%d,short_time_high_temp=%d\n", ffc_chg_term_no_work,short_time_high_temp);
+          }
         }
-    }
 
 	return 0;
 }

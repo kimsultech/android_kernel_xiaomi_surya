@@ -1044,7 +1044,7 @@ static int smb5_usb_get_prop(struct power_supply *psy,
 		val->intval = get_client_vote(chg->usb_icl_votable, PD_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		val->intval = get_effective_result(chg->usb_icl_votable);
+		rc = smblib_get_prop_input_current_max(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
 		val->intval = POWER_SUPPLY_TYPE_USB_PD;
@@ -1238,7 +1238,7 @@ static int smb5_usb_set_prop(struct power_supply *psy,
 	struct smb_charger *chg = &chip->chg;
 	int icl, rc = 0;
 
-    pr_info("smb5_usb_set_prop: set prop %d to %d\n", psp, val->intval);
+    //pr_info("smb5_usb_set_prop: set prop %d to %d\n", psp, val->intval);
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_PD_CURRENT_MAX:
@@ -1653,8 +1653,8 @@ static int smb5_usb_main_set_prop(struct power_supply *psy,
 		rc = smblib_toggle_smb_en(chg, val->intval);
 		break;
 	case POWER_SUPPLY_PROP_MAIN_FCC_MAX:
-		chg->main_fcc_max = val->intval;
-		rerun_election(chg->fcc_votable);
+		//chg->main_fcc_max = val->intval;
+		//rerun_election(chg->fcc_votable);
 		break;
 	case POWER_SUPPLY_PROP_FORCE_MAIN_FCC:
 		vote_override(chg->fcc_main_votable, CC_MODE_VOTER,
@@ -1695,7 +1695,7 @@ static int smb5_usb_main_prop_is_writeable(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_TOGGLE_STAT:
-	case POWER_SUPPLY_PROP_MAIN_FCC_MAX:
+	//case POWER_SUPPLY_PROP_MAIN_FCC_MAX:
 	case POWER_SUPPLY_PROP_FORCE_MAIN_FCC:
 	case POWER_SUPPLY_PROP_FORCE_MAIN_ICL:
 	case POWER_SUPPLY_PROP_COMP_CLAMP_LEVEL:
@@ -2208,12 +2208,14 @@ static int smb5_batt_set_prop(struct power_supply *psy,
 		chg->fcc_stepper_enable = val->intval;
 		break;
 	case POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED:
+        pr_info("POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED:%d",chg->use_bq_pump);
 		if (chg->use_bq_pump) {
 			if (val->intval == 0) {
-				if (chg->six_pin_step_charge_enable)
+				if (chg->six_pin_step_charge_enable) {
 					vote(chg->usb_icl_votable, MAIN_ICL_MIN_VOTER,
 								true, MAIN_ICL_MIN);
-				else
+                    dump_stack();
+				} else
 					vote(chg->usb_icl_votable, MAIN_CHG_SUSPEND_VOTER,
 								true, 0);
 			} else {
@@ -2230,6 +2232,7 @@ static int smb5_batt_set_prop(struct power_supply *psy,
 		rc = smblib_set_prop_battery_charging_enabled(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_BATTERY_CHARGING_LIMITED:
+        pr_info("POWER_SUPPLY_PROP_BATTERY_CHARGING_LIMITED:%d",chg->use_bq_pump);
 		if (chg->use_bq_pump) {
 			if (val->intval == 0) {
 				vote(chg->usb_icl_votable, MAIN_CHG_VOTER,

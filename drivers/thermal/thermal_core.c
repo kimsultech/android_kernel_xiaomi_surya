@@ -18,7 +18,7 @@
 #include <linux/slab.h>
 #include <linux/kdev_t.h>
 #include <linux/idr.h>
-#include <linux/thermal.h>
+
 #include <linux/reboot.h>
 #include <linux/string.h>
 #include <linux/of.h>
@@ -35,6 +35,8 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/thermal.h>
+
+#include <linux/thermal.h>
 
 #include "thermal_core.h"
 #include "thermal_hwmon.h"
@@ -81,6 +83,12 @@ static bool power_off_triggered;
 static struct thermal_governor *def_governor;
 
 static struct workqueue_struct *thermal_passive_wq;
+
+int get_sconfig(void) 
+{ 
+    return atomic_read(&switch_mode); 
+}
+
 
 /*
  * Governor section: set of functions to handle thermal governors

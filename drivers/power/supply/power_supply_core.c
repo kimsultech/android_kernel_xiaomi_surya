@@ -646,6 +646,12 @@ int power_supply_set_property(struct power_supply *psy,
 	if (atomic_read(&psy->use_cnt) <= 0 || !psy->desc->set_property)
 		return -ENODEV;
 
+    //pr_info("power_supply_set_property %d -> %d", psp, val->intval);
+    if( psp == POWER_SUPPLY_PROP_CURRENT_MAX ) {
+        pr_info("power_supply_set_property %d -> %d", psp, val->intval);
+        //dump_stack();
+        //return 0;
+    }
 	return psy->desc->set_property(psy, psp, val);
 }
 EXPORT_SYMBOL_GPL(power_supply_set_property);

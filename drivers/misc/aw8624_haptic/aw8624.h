@@ -346,6 +346,7 @@ struct aw8624 {
 	int index;
 	int vmax;
 	int gain;
+	int ulevel;
 	int f0_value;
 	unsigned char level;
 
@@ -414,7 +415,7 @@ struct aw8624 {
 
 /*2019.12.19 longcheer zhangjunwei1 start*/
 /*achieve the debug function*/
-#define VIB_DEBUG_EN  0
+#define VIB_DEBUG_EN  1
 #if VIB_DEBUG_EN
 #define VIB_DEBUG(fmt, args...) do { \
     printk("[AWINIC_HAPTIC]%s:"fmt"\n", __func__, ##args); \
