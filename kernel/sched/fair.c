@@ -6777,7 +6777,7 @@ schedtune_cpu_margin(unsigned long util, int cpu)
 	if (boost == 0)
 		return 0;
 
-	return schedtune_margin(util, boost, SCHED_CAPACITY_SCALE /* capacity_orig_of(cpu) */);
+	return schedtune_margin(util, boost, capacity_orig_of(cpu));
 }
 
 static inline long
