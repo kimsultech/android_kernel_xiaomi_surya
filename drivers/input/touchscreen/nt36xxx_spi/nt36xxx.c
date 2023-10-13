@@ -1238,6 +1238,8 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 	int32_t i = 0;
 	int32_t finger_cnt = 0;
 
+    pm_wakeup_event(&ts->input_dev->dev,1000);
+
 #if WAKEUP_GESTURE
 #ifdef CONFIG_PM
 	if (ts->dev_pm_suspend && ts->is_gesture_mode) {
@@ -2446,6 +2448,7 @@ static int nvt_pm_suspend(struct device *dev)
 	struct nvt_ts_data *ts = dev_get_drvdata(dev);
 
 	ts->dev_pm_suspend = true;
+    enable_irq_wake(ts->client->irq);
 	reinit_completion(&ts->dev_pm_suspend_completion);
 	NVT_LOG("pm suspend");
 
@@ -2457,6 +2460,7 @@ static int nvt_pm_resume(struct device *dev)
 	struct nvt_ts_data *ts = dev_get_drvdata(dev);
 
 	ts->dev_pm_suspend = false;
+	disable_irq_wake(ts->client->irq);
 	complete(&ts->dev_pm_suspend_completion);
 	NVT_LOG("pm resume");
 
