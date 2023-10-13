@@ -746,6 +746,35 @@ static ssize_t wake_unlock_store(struct kobject *kobj,
 
 power_attr(wake_unlock);
 
+int keep_awake_enabled;
+
+static ssize_t keep_awake_show(struct kobject *kobj, struct kobj_attribute *attr,
+			     char *buf)
+{
+	return sprintf(buf, "%d\n", keep_awake_enabled);
+}
+
+static ssize_t
+keep_awake_store(struct kobject *kobj, struct kobj_attribute *attr,
+	       const char *buf, size_t n)
+{
+	int val;
+
+	if (sscanf(buf, "%d", &val) == 1) {
+		keep_awake_enabled = !!val;
+        if( keep_awake_enabled ) {
+            pm_wake_lock("baikalos_keep_awake");
+        } else {
+            pm_wake_unlock("baikalos_keep_awake");
+        }
+		return n;
+	}
+	return -EINVAL;
+}
+
+power_attr(keep_awake);
+
+
 #endif /* CONFIG_PM_WAKELOCKS */
 #endif /* CONFIG_PM_SLEEP */
 
@@ -833,6 +862,7 @@ static struct attribute * g[] = {
 #ifdef CONFIG_PM_WAKELOCKS
 	&wake_lock_attr.attr,
 	&wake_unlock_attr.attr,
+	&keep_awake_attr.attr,
 #endif
 #ifdef CONFIG_PM_SLEEP_DEBUG
 	&pm_test_attr.attr,
@@ -864,7 +894,7 @@ EXPORT_SYMBOL_GPL(pm_wq);
 
 static int __init pm_start_workqueue(void)
 {
-	pm_wq = alloc_workqueue("pm", WQ_FREEZABLE | WQ_POWER_EFFICIENT, 0);
+	pm_wq = alloc_workqueue("pm", WQ_FREEZABLE, 0);
 
 	return pm_wq ? 0 : -ENOMEM;
 }
