@@ -2890,7 +2890,7 @@ retry:
 				goto unlock;
 			}
 
-			if (lp != SDE_MODE_DPMS_LP1)
+			if (lp != SDE_MODE_DPMS_LP1 && lp != SDE_MODE_DPMS_ON)
 				crtc_state->active = false;
 			++num_crtcs;
 		}
