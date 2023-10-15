@@ -127,14 +127,18 @@ static uint8_t bTouchIsAwake;
 #if WAKEUP_GESTURE
 #define WAKEUP_OFF 4
 #define WAKEUP_ON 5
+static int wake_gesture_enabled = false;
 int nvt_gesture_switch(struct input_dev *dev, unsigned int type, unsigned int code, int value)
 {
 	NVT_LOG("Enter. type = %u, code = %u, value = %d\n", type, code, value);
 	if (type == EV_SYN && code == SYN_CONFIG) {
-		if (value == WAKEUP_OFF)
-			lct_nvt_tp_gesture_callback(false);
-		else if (value == WAKEUP_ON)
+		if (value == WAKEUP_OFF) {
+            wake_gesture_enabled = false;
 			lct_nvt_tp_gesture_callback(true);
+		} else if (value == WAKEUP_ON) {
+            wake_gesture_enabled = true;
+			lct_nvt_tp_gesture_callback(true);
+        }
 	}
 	NVT_LOG("Exit\n");
 	return 0;
@@ -1291,7 +1295,7 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
 		//input_id = (uint8_t)(point_data[1] >> 3);
-		nvt_ts_wakeup_gesture_report(input_id, point_data);
+        if( wake_gesture_enabled ) nvt_ts_wakeup_gesture_report(input_id, point_data);
 		mutex_unlock(&ts->lock);
 		return IRQ_HANDLED;
 	}
@@ -2188,7 +2192,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 
 #if WAKEUP_GESTURE
 	if (!ts->is_gesture_mode) {
-		nvt_irq_enable(false);
+		//nvt_irq_enable(false);
 #if 0
 		//spi bus pm_runtime_get
 		if (spi_geni_master_dev) {
@@ -2294,7 +2298,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 #if WAKEUP_GESTURE
 	if (!ts->is_gesture_mode) {
-		nvt_irq_enable(true);
+		//nvt_irq_enable(true);
 #if 0
 		//spi bus pm_runtime_get
 		if (spi_geni_master_dev) {
