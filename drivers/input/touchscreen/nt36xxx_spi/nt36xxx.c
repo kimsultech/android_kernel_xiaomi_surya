@@ -127,14 +127,18 @@ static uint8_t bTouchIsAwake;
 #if WAKEUP_GESTURE
 #define WAKEUP_OFF 4
 #define WAKEUP_ON 5
+static int wake_gesture_enabled = false;
 int nvt_gesture_switch(struct input_dev *dev, unsigned int type, unsigned int code, int value)
 {
 	NVT_LOG("Enter. type = %u, code = %u, value = %d\n", type, code, value);
 	if (type == EV_SYN && code == SYN_CONFIG) {
-		if (value == WAKEUP_OFF)
-			lct_nvt_tp_gesture_callback(false);
-		else if (value == WAKEUP_ON)
+		if (value == WAKEUP_OFF) {
+            wake_gesture_enabled = false;
 			lct_nvt_tp_gesture_callback(true);
+		} else if (value == WAKEUP_ON) {
+            wake_gesture_enabled = true;
+			lct_nvt_tp_gesture_callback(true);
+        }
 	}
 	NVT_LOG("Exit\n");
 	return 0;
@@ -159,7 +163,8 @@ static ssize_t double_tap_store(struct kobject *kobj,
     if (rc)
     return -EINVAL;
 
-    lct_nvt_tp_gesture_callback(!!val);
+    //lct_nvt_tp_gesture_callback(!!val);
+    lct_nvt_tp_gesture_callback(true);
     return count;
 }
 
@@ -1238,17 +1243,19 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 	int32_t i = 0;
 	int32_t finger_cnt = 0;
 
-    pm_wakeup_event(&ts->input_dev->dev,1000);
 
 #if WAKEUP_GESTURE
 #ifdef CONFIG_PM
-	if (ts->dev_pm_suspend && ts->is_gesture_mode) {
-		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(1500));
+	if (ts->dev_pm_suspend /*&& ts->is_gesture_mode*/) {
+        pm_wakeup_event(&ts->input_dev->dev,1500);
+		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(1000));
 		if (!ret) {
 			NVT_ERR("system(spi bus) can't finished resuming procedure, skip it");
 			return IRQ_HANDLED;
 		}
-	}
+	} else {
+        pm_wakeup_event(&ts->input_dev->dev,1000);
+    }
 #endif
 #endif
 
@@ -1291,7 +1298,7 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
 		//input_id = (uint8_t)(point_data[1] >> 3);
-		nvt_ts_wakeup_gesture_report(input_id, point_data);
+        if( wake_gesture_enabled ) nvt_ts_wakeup_gesture_report(input_id, point_data);
 		mutex_unlock(&ts->lock);
 		return IRQ_HANDLED;
 	}
@@ -1920,6 +1927,7 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 	NVT_LOG("end\n");
 
 	nvt_irq_enable(true);
+    enable_irq_wake(ts->client->irq);
 
 #ifdef CONFIG_PM
 	ts->dev_pm_suspend = false;
@@ -1937,6 +1945,7 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 	}
 #endif
 
+    lct_nvt_tp_gesture_callback(true);
 	return 0;
 
 //2019.12.16 longcheer taocheng add (xiaomi game mode)
@@ -2196,7 +2205,9 @@ static int32_t nvt_ts_suspend(struct device *dev)
 				NVT_ERR("pm_runtime_put fail!\n");
 		}
 #endif
-	}
+	} else {
+		nvt_irq_enable(true);
+    }
 #else
 	nvt_irq_enable(false);
 #endif
@@ -2219,7 +2230,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 		buf[0] = EVENT_MAP_HOST_CMD;
 		buf[1] = 0x13;
 		CTP_SPI_WRITE(ts->client, buf, 2);
-		enable_irq_wake(ts->client->irq);
+		//enable_irq_wake(ts->client->irq);
 		NVT_LOG("Enabled touch wakeup gesture\n");
 	} else {
 		//---write command to enter "deep sleep mode"---
@@ -2252,7 +2263,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 #endif
 	input_sync(ts->input_dev);
 
-	msleep(50);
+	//msleep(50);
 
 	NVT_LOG("end\n");
 
@@ -2302,7 +2313,9 @@ static int32_t nvt_ts_resume(struct device *dev)
 				NVT_ERR("pm_runtime_get fail!\n");
 		}
 #endif
-	}
+	} else {
+		nvt_irq_enable(true);
+    }
 #else
 	nvt_irq_enable(true);
 #endif
@@ -2319,6 +2332,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 #if WAKEUP_GESTURE
 	if (ts->delay_gesture) {
+        NVT_LOG("delay_gesture = 1\n");
 		lct_nvt_tp_gesture_callback(!ts->is_gesture_mode);
 		ts->delay_gesture = false;
 	}
@@ -2377,14 +2391,14 @@ static int nvt_drm_notifier_callback(struct notifier_block *self, unsigned long 
 		if (event == DRM_EARLY_EVENT_BLANK) {
 			if (*blank == DRM_BLANK_POWERDOWN) {
 				NVT_LOG("suspend event=%lu, *blank=%d\n", event, *blank);
-				cancel_work_sync(&ts->resume_work);
+				//cancel_work_sync(&ts->resume_work);
 				nvt_ts_suspend(&ts->client->dev);
 			}
 		} else if (event == DRM_EVENT_BLANK) {
 			if (*blank == DRM_BLANK_UNBLANK) {
 				NVT_LOG("resume event=%lu, *blank=%d\n", event, *blank);
-				//nvt_ts_resume(&ts->client->dev);
-				queue_work(ts->workqueue, &ts->resume_work);
+				nvt_ts_resume(&ts->client->dev);
+				//queue_work(ts->workqueue, &ts->resume_work);
 			}
 		}
 	}
@@ -2426,7 +2440,7 @@ return:
 *******************************************************/
 static void nvt_ts_early_suspend(struct early_suspend *h)
 {
-	nvt_ts_suspend(ts->client, PMSG_SUSPEND);
+	//nvt_ts_suspend(ts->client, PMSG_SUSPEND);
 }
 
 /*******************************************************
@@ -2438,7 +2452,7 @@ return:
 *******************************************************/
 static void nvt_ts_late_resume(struct early_suspend *h)
 {
-	nvt_ts_resume(ts->client);
+	//nvt_ts_resume(ts->client);
 }
 #endif
 
@@ -2448,7 +2462,7 @@ static int nvt_pm_suspend(struct device *dev)
 	struct nvt_ts_data *ts = dev_get_drvdata(dev);
 
 	ts->dev_pm_suspend = true;
-    enable_irq_wake(ts->client->irq);
+    //enable_irq_wake(ts->client->irq);
 	reinit_completion(&ts->dev_pm_suspend_completion);
 	NVT_LOG("pm suspend");
 
@@ -2459,8 +2473,8 @@ static int nvt_pm_resume(struct device *dev)
 {
 	struct nvt_ts_data *ts = dev_get_drvdata(dev);
 
-	ts->dev_pm_suspend = false;
-	disable_irq_wake(ts->client->irq);
+    ts->dev_pm_suspend = false;
+    //disable_irq_wake(ts->client->irq);
 	complete(&ts->dev_pm_suspend_completion);
 	NVT_LOG("pm resume");
 
