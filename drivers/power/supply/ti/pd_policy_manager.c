@@ -911,7 +911,7 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 				usbpd_select_pdo(pdpm->pd, pdpm->apdo_selected_pdo,
 					6000000, pdpm->apdo_max_curr * 1000);
 		    pr_debug("batt_volt %d, waiting...\n", pdpm->cp.vbat_volt);
-		} else if (pdpm->cp.vbat_volt > pm_config.bat_volt_lp_lmt - 50) {
+		} else if (pdpm->cp.vbat_volt > pm_config.bat_volt_lp_lmt) {
 			pr_info("batt_volt %d is too high for cp,\
 					charging with switch charger\n",
 					pdpm->cp.vbat_volt);
@@ -1064,7 +1064,7 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 			stop_sw = true;
 			usbpd_pm_move_state(pdpm, PD_PM_STATE_FC2_EXIT);
 			break;
-		} else if (ret == PM_ALGO_RET_OTHER_FAULT || ret == PM_ALGO_RET_TAPER_DONE) {
+		} else if (ret == PM_ALGO_RET_OTHER_FAULT /*|| ret == PM_ALGO_RET_TAPER_DONE*/) {
 			pr_info("Move to switch charging:%d\n", ret);
 			usbpd_pm_move_state(pdpm, PD_PM_STATE_FC2_EXIT);
 			break;
@@ -1092,7 +1092,9 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 		break;
 
 	case PD_PM_STATE_FC2_EXIT:
-        pr_info("PD_PM_STATE_FC2_EXIT\n");
+        pr_info("PD_PM_STATE_FC2_EXIT: styp_sw=%d, charge_enabled=%d, charge_limited=%d\n",
+		        stop_sw,pdpm->sw.charge_enabled,pdpm->sw.charge_limited);
+
 		if (pdpm->apdo_max_curr >= 2300)
 			/* select 6V,2.3A*/
 			usbpd_select_pdo(pdpm->pd, pdpm->apdo_selected_pdo,
@@ -1108,19 +1110,26 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 		usbpd_pm_limit_sw(pdpm, false);
 
 		if (!stop_sw && (!pdpm->sw.charge_enabled || pdpm->sw.charge_limited)) {
+            pr_info("usbpd_pm_enable_sw true\n");
 			usbpd_pm_enable_sw(pdpm, true);
 		}
 
-		if (stop_sw && (pdpm->sw.charge_enabled || pdpm->sw.charge_limited))
+		if (stop_sw && (pdpm->sw.charge_enabled || pdpm->sw.charge_limited)) {
+            pr_info("usbpd_pm_enable_sw false\n");
 			usbpd_pm_enable_sw(pdpm, false);
+        }
+
+        pr_info("usbpd_pm_update_sw_status\n");
 		usbpd_pm_update_sw_status(pdpm);
 
 		if (pdpm->cp.charge_enabled) {
+            pr_info("usbpd_pm_enable_cp\n");
 			usbpd_pm_enable_cp(pdpm, false);
 			usbpd_pm_check_cp_enabled(pdpm);
 		}
 
 		if (pm_config.cp_sec_enable && pdpm->cp_sec.charge_enabled) {
+            pr_info("usbpd_pm_enable_cp_sec\n");
 			usbpd_pm_enable_cp_sec(pdpm, false);
 			usbpd_pm_check_cp_sec_enabled(pdpm);
 		}
