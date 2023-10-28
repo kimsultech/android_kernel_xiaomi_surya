@@ -1246,16 +1246,19 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 
 #if WAKEUP_GESTURE
 #ifdef CONFIG_PM
+
 	if (ts->dev_pm_suspend /*&& ts->is_gesture_mode*/) {
-        pm_wakeup_event(&ts->input_dev->dev,1500);
+        pm_wakeup_event(&ts->input_dev->dev,1100);
 		ret = wait_for_completion_timeout(&ts->dev_pm_suspend_completion, msecs_to_jiffies(1000));
 		if (!ret) {
 			NVT_ERR("system(spi bus) can't finished resuming procedure, skip it");
 			return IRQ_HANDLED;
 		}
-	} else {
-        pm_wakeup_event(&ts->input_dev->dev,1000);
-    }
+        pm_relax(&ts->input_dev->dev);
+	} 
+
+    pm_wakeup_event(&ts->input_dev->dev,500);
+
 #endif
 #endif
 
