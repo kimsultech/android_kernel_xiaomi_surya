@@ -98,6 +98,7 @@ struct schedtune {
 	/* Hint to bias scheduling of tasks on that SchedTune CGroup
 	 * towards idle CPUs */
 	int prefer_idle;
+	int prefer_high_cap;
 };
 
 static inline struct schedtune *css_st(struct cgroup_subsys_state *css)
@@ -136,6 +137,8 @@ root_schedtune = {
 	.colocate_update_disabled = false,
 #endif
 	.prefer_idle = 0,
+    .prefer_high_cap = 0,
+
 };
 
 /*
@@ -809,6 +812,45 @@ prefer_idle_write(struct cgroup_subsys_state *css, struct cftype *cft,
 	return 0;
 }
 
+int schedtune_prefer_high_cap(struct task_struct *p)
+{
+	struct schedtune *st;
+	int prefer_idle;
+    int adj = p->signal->oom_score_adj;
+
+	if (unlikely(!schedtune_initialized))
+		return 0;
+
+    if( /*likely(!enable_boost_all) &&*/ adj != 0 && adj != -100 ) return 0;
+    if( /*likely(!enable_boost_low_prio) &&*/ p->prio > DEFAULT_PRIO ) return 0;
+
+	/* Get prefer_idle value */
+	rcu_read_lock();
+	st = task_schedtune(p);
+	prefer_idle = st->prefer_high_cap;
+	rcu_read_unlock();
+
+	return prefer_idle;
+}
+
+static u64
+prefer_high_cap_read(struct cgroup_subsys_state *css, struct cftype *cft)
+{
+	struct schedtune *st = css_st(css);
+
+	return st->prefer_high_cap;
+}
+
+static int
+prefer_high_cap_write(struct cgroup_subsys_state *css, struct cftype *cft,
+	    u64 prefer_high_cap)
+{
+	struct schedtune *st = css_st(css);
+	st->prefer_high_cap = !!prefer_high_cap;
+
+	return 0;
+}
+
 static s64
 boost_read(struct cgroup_subsys_state *css, struct cftype *cft)
 {
@@ -940,6 +982,11 @@ static struct cftype files[] = {
 		.name = "prefer_idle",
 		.read_u64 = prefer_idle_read,
 		.write_u64 = prefer_idle_write,
+	},
+	{
+		.name = "prefer_high_cap",
+		.read_u64 = prefer_high_cap_read,
+		.write_u64 = prefer_high_cap_write,
 	},
 	{ }	/* terminate */
 };

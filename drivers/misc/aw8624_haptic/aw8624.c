@@ -2242,6 +2242,7 @@ static void aw8624_vibrator_work_routine(struct work_struct *work)
 				      ktime_set(aw8624->duration / 1000,
 						(aw8624->duration % 1000) *
 						1000000), HRTIMER_MODE_REL);
+            pm_stay_awake(aw8624->dev);
 		} else if (aw8624->activate_mode ==
 			   AW8624_HAPTIC_ACTIVATE_CONT_MODE) {
 			aw8624_haptic_cont(aw8624);
@@ -2252,7 +2253,9 @@ static void aw8624_vibrator_work_routine(struct work_struct *work)
 		} else {
 			/*other mode */
 		}
-	}
+	} else {
+    	pm_relax(aw8624->dev);
+    }
 	mutex_unlock(&aw8624->lock);
 }
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,18 +11,27 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- ******************************************************************************/
+ *****************************************************************************/
 #ifndef __RTL8188E_LED_H__
 #define __RTL8188E_LED_H__
 
-#include <osdep_service.h>
-#include <drv_types.h>
+#ifdef CONFIG_RTW_SW_LED
 
-
-/*  */
-/*  Interface to manipulate LED objects. */
-/*  */
-void SwLedOn(struct adapter *padapter, struct LED_871x *pLed);
-void SwLedOff(struct adapter *padapter, struct LED_871x *pLed);
+/* ********************************************************************************
+ * Interface to manipulate LED objects.
+ * ******************************************************************************** */
+#ifdef CONFIG_USB_HCI
+	void rtl8188eu_InitSwLeds(PADAPTER padapter);
+	void rtl8188eu_DeInitSwLeds(PADAPTER padapter);
+#endif
+#ifdef CONFIG_PCI_HCI
+	void rtl8188ee_InitSwLeds(PADAPTER padapter);
+	void rtl8188ee_DeInitSwLeds(PADAPTER padapter);
+#endif
+#if defined(CONFIG_SDIO_HCI) || defined(CONFIG_GSPI_HCI)
+	void rtl8188es_InitSwLeds(PADAPTER padapter);
+	void rtl8188es_DeInitSwLeds(PADAPTER padapter);
+#endif
 
 #endif
+#endif /*CONFIG_RTW_SW_LED*/

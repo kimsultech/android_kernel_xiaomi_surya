@@ -302,7 +302,7 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, int cpu,
 
 	*util = boosted_cpu_util(cpu, &loadcpu->walt_load);
 
-	if (likely(use_pelt())) {
+	if (unlikely(use_pelt())) {
 		sched_avg_update(rq);
 		delta = time - rq->age_stamp;
 		if (unlikely(delta < 0))
@@ -381,7 +381,7 @@ static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
 #endif /* CONFIG_NO_HZ_COMMON */
 
 #define NL_RATIO 75
-#define DEFAULT_HISPEED_LOAD 90
+#define DEFAULT_HISPEED_LOAD 101
 static void sugov_walt_adjust(struct sugov_cpu *sg_cpu, unsigned long *util,
 			      unsigned long *max)
 {
@@ -711,7 +711,7 @@ static ssize_t hispeed_load_store(struct gov_attr_set *attr_set,
 	if (kstrtouint(buf, 10, &tunables->hispeed_load))
 		return -EINVAL;
 
-	tunables->hispeed_load = min(100U, tunables->hispeed_load);
+	//tunables->hispeed_load = min(100U, tunables->hispeed_load);
 
 	return count;
 }
@@ -735,7 +735,7 @@ static ssize_t hispeed_freq_store(struct gov_attr_set *attr_set,
 	if (kstrtouint(buf, 10, &val))
 		return -EINVAL;
 
-	tunables->hispeed_freq = val;
+	//tunables->hispeed_freq = val;
 	list_for_each_entry(sg_policy, &attr_set->policy_list, tunables_hook) {
 		raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
 		hs_util = freq_to_util(sg_policy,
@@ -819,7 +819,7 @@ static void sugov_policy_free(struct sugov_policy *sg_policy)
 static int sugov_kthread_create(struct sugov_policy *sg_policy)
 {
 	struct task_struct *thread;
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
+	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO - 1 };
 	struct cpufreq_policy *policy = sg_policy->policy;
 	int ret;
 
