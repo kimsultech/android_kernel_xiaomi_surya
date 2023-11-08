@@ -76,7 +76,7 @@ UTS_TRUNCATE="cut -b -$UTS_LEN"
   echo \#define UTS_VERSION \"`echo $UTS_VERSION | $UTS_TRUNCATE`\"
 
   echo \#define LINUX_COMPILE_BY \"`echo kimsultan | $UTS_TRUNCATE`\"
-  echo \#define LINUX_COMPILE_HOST \"`echo tripleS | $UTS_TRUNCATE`\"
+  echo \#define LINUX_COMPILE_HOST \"`echo dreamcatcher7 | $UTS_TRUNCATE`\"
 
   CC_VERSION=$($CC -v 2>&1 | grep ' version ' | sed 's/[[:space:]]*$//')
   LD_VERSION=$($LD -v | head -n1 | sed 's/(compatible with [^)]*)//' \
