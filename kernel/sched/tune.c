@@ -738,11 +738,15 @@ int schedtune_task_boost(struct task_struct *p)
 	rcu_read_unlock();
 
     if( task_boost > 0 ) {
-        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) return boost_default_value;
+        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) {
+                if( unlikely(enable_boost_debug) ) pr_info("task_boost_d = 1");
+            return boost_default_value;
+        }
         if( likely(!enable_boost_low_prio) && p->prio > DEFAULT_PRIO ) return 0;
         if( boost_override_task > -1 ) return boost_override_task;
     }
 
+    if( unlikely(enable_boost_debug) ) if( task_boost > 0 ) pr_info("task_boost = %d", task_boost);
 	return task_boost;
 }
 
@@ -765,11 +769,14 @@ int schedtune_task_boost_rcu_locked(struct task_struct *p)
 	task_boost = st->boost;
 
     if( task_boost > 0 ) {
-        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) return boost_default_value;
+        if( likely(!enable_boost_all) && adj != 0 && adj != -100 ) {
+            if( unlikely(enable_boost_debug) ) pr_info("task_boost_d = 1");
+            return boost_default_value;
+        }
         if( likely(!enable_boost_low_prio) && p->prio > DEFAULT_PRIO ) return 0;
         if( boost_override_task > -1 ) return boost_override_task;
     }
-
+    if( unlikely(enable_boost_debug) ) if( task_boost > 0 ) pr_info("task_boost = %d", task_boost);
 	return task_boost;
 }
 
@@ -790,7 +797,7 @@ int schedtune_prefer_idle(struct task_struct *p)
 	st = task_schedtune(p);
 	prefer_idle = st->prefer_idle;
 	rcu_read_unlock();
-
+    if( unlikely(enable_boost_debug) && prefer_idle ) pr_info("prefer_idle = %d", prefer_idle);
 	return prefer_idle;
 }
 
@@ -830,6 +837,7 @@ int schedtune_prefer_high_cap(struct task_struct *p)
 	prefer_idle = st->prefer_high_cap;
 	rcu_read_unlock();
 
+    if( unlikely(enable_boost_debug) && prefer_idle ) pr_info("prefer_idle = %d", prefer_idle);
 	return prefer_idle;
 }
 
