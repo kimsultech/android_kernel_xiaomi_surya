@@ -576,9 +576,9 @@
 			ti,bq2597x,bat-ucp-alarm-disable;
 			ti,bq2597x,bat-ucp-disable;
 
-			/*ti,bq2597x,bus-ovp-alarm-disable;
+			ti,bq2597x,bus-ovp-alarm-disable;
 			ti,bq2597x,bus-ocp-disable;
-			ti,bq2597x,bus-ocp-alarm-disable;*/
+			ti,bq2597x,bus-ocp-alarm-disable;
 			ti,bq2597x,bat-therm-disable;
 			ti,bq2597x,bus-therm-disable;
 			ti,bq2597x,die-therm-disable;
@@ -588,12 +588,12 @@
 			//ti,bq2597x,bat-ocp-threshold = <5000>;
 			//ti,bq2597x,bat-ocp-alarm-threshold = <4500>;
 
-			ti,bq2597x,bus-ovp-threshold = <12000>;
-			ti,bq2597x,bus-ovp-alarm-threshold = <11000>;
+			//ti,bq2597x,bus-ovp-threshold = <12000>;
+			//ti,bq2597x,bus-ovp-alarm-threshold = <11000>;
 			//ti,bq2597x,bus-ocp-threshold = <2200>;
 			//ti,bq2597x,bus-ocp-alarm-threshold = <2000>;
-			ti,bq2597x,bus-ocp-threshold = <3500>;
-			ti,bq2597x,bus-ocp-alarm-threshold = <3300>;
+			//ti,bq2597x,bus-ocp-threshold = <3500>;
+			//ti,bq2597x,bus-ocp-alarm-threshold = <3300>;
 
 			//ti,bq2597x,bat-ucp-alarm-threshold = <2000>;
 
