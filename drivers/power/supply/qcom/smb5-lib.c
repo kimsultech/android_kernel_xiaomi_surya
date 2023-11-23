@@ -2820,7 +2820,7 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
 	}
 
 	if (chg->use_bq_pump)
-		chg->bq_input_suspend = false; // !!(val->intval);
+		chg->bq_input_suspend = !!(val->intval);
 
     if( val->intval == 1 ) {
         rc = vote(chg->chg_disable_votable, BYPASS_VOTER, 1, 0);
