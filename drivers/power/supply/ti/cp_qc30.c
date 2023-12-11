@@ -54,8 +54,8 @@
 
 #include "cp_qc30.h"
 
-#define BATT_MAX_CHG_VOLT		4480
-#define BATT_FAST_CHG_CURR		5400
+#define BATT_MAX_CHG_VOLT		4450
+#define BATT_FAST_CHG_CURR		6400
 #define	BUS_OVP_THRESHOLD		12000
 #define	BUS_OVP_ALARM_THRESHOLD		9500
 
@@ -85,7 +85,7 @@ static struct sys_config sys_config = {
 	.ibat_minus_deviation_val = 600,
 	.ibat_plus_deviation_val = 500,
 
-	.fc2_taper_current		= 2200,
+	.fc2_taper_current		= 1200,
 	.flash2_policy.down_steps	= -1,
 	.flash2_policy.volt_hysteresis	= 50,
 
@@ -664,7 +664,7 @@ static int cp_get_qc_hvdcp3_type(void)
 }
 
 
-#define TAPER_TIMEOUT	10
+#define TAPER_TIMEOUT	50
 #define IBUS_CHANGE_TIMEOUT  5
 static int cp_flash2_charge(unsigned int port)
 {
@@ -784,7 +784,7 @@ static int cp_flash2_charge(unsigned int port)
 				thermal_level, pm_state.is_temp_out_fc2_range);
 		return CP_ENABLE_FAIL;
 	}
-	if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 50 &&
+	if (pm_state.bq2597x.vbat_volt > sys_config.bat_volt_lp_lmt - 30 &&
 			pm_state.bq2597x.ibat_curr < sys_config.fc2_taper_current) {
 
    		pr_info("TAPER_DONE=%d vbat=%d, bat_volt_lp_lmt=%d, ibat_curr=%d, fc2_taper_current=%d \n", fc2_taper_timer, 
