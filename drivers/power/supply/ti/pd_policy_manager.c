@@ -33,7 +33,7 @@
 #define PD_SRC_PDO_TYPE_AUGMENTED	3
 
 #define BATT_MAX_CHG_VOLT		4450
-#define BATT_FAST_CHG_CURR		6000
+#define BATT_FAST_CHG_CURR		6400
 #define	BUS_OVP_THRESHOLD		12000
 #define	BUS_OVP_ALARM_THRESHOLD		9500
 
@@ -62,7 +62,7 @@ static struct pdpm_config pm_config = {
 	.bus_curr_lp_lmt		= BAT_CURR_LOOP_LMT >> 1,
 	.bus_curr_compensate	= 0,
 
-	.fc2_taper_current		= 2300,
+	.fc2_taper_current		= 1300,
 	.fc2_steps			= 1,
 
 	.min_adapter_volt_required	= 10000,
@@ -657,7 +657,7 @@ static void usbpd_update_pps_status(struct usbpd_pm *pdpm)
 	}
 }
 
-#define TAPER_TIMEOUT	(5000 / PM_WORK_RUN_INTERVAL)
+#define TAPER_TIMEOUT	(50000 / PM_WORK_RUN_INTERVAL)
 #define IBUS_CHANGE_TIMEOUT  (500 / PM_WORK_RUN_INTERVAL)
 static int usbpd_pm_fc2_charge_algo(struct usbpd_pm *pdpm)
 {
@@ -816,7 +816,7 @@ static int usbpd_pm_fc2_charge_algo(struct usbpd_pm *pdpm)
 	}
 
 	/* charge pump taper charge */
-	if (pdpm->cp.vbat_volt > pm_config.bat_volt_lp_lmt - TAPER_VOL_HYS
+	if (pdpm->cp.vbat_volt > pm_config.bat_volt_lp_lmt - 30
 			&& pdpm->cp.ibat_curr < pm_config.fc2_taper_current) {
 		if (fc2_taper_timer++ > TAPER_TIMEOUT) {
 			pr_info("charge pump taper charging done\n");

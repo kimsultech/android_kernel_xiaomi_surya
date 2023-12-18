@@ -78,7 +78,7 @@ enum hvdcp3_type {
 #define QC3_CHARGER_ICL                 5400000
 
 #define QC3P5_BQ_TAPER_FCC_VOTER       "QC3P5_BQ_TAPER_FCC_VOTER"
-#define QC3P5_BQ_TAPER_HYS_MV                  30
+#define QC3P5_BQ_TAPER_HYS_MV                  10
 #define QC3P5_BQ_TAPER_DECREASE_STEP_MA                        200
 
 #define HVDCP3_CLASS_B_BAT_CURRENT_MA			5400
@@ -98,7 +98,7 @@ enum hvdcp3_type {
  */
 #define JEITA_HYSTERESIS			20
 
-#define HIGH_CAPACITY_TRH			98
+#define HIGH_CAPACITY_TRH			99
 
 
 struct flash2_policy {

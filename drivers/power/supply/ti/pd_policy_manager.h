@@ -92,7 +92,7 @@ enum pm_state {
 #define PPS_VOL_HYS			1000
 
 #define STEP_MV			20
-#define TAPER_VOL_HYS			80
+#define TAPER_VOL_HYS			50
 #define TAPER_WITH_IBUS_HYS			60
 #define TAPER_IBUS_THR			450
 #define BQ_TAPER_HYS_MV			10
